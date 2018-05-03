@@ -1,17 +1,21 @@
 # Script For a Feistal Block cipher, requires a Function.{Cipher,Decipher}
+# Modified: 03-MAY-2018
 # Author: Cody Lewis
 # Since: 02-MAY-2018
 
 # The Feistal block cipher Function
 # param text - the [plain|cipher]text
 # return - plaintext if ciphertext in, else ciphertext
-def cipher(text):
+import des0 # this will need to be dependant on the specified des version
+def cipher(text,key):
+    FBox = des0.des(key)
     l_cur, r_cur = split_text(text)
     for i in range(0,15):
-        l_cur, r_cur = round(l_cur, r_cur)
+        l_cur, r_cur = round(FBox, l_cur, r_cur)
     l_cur, r_cur = r_cur, l_cur
     result = join_text(l_cur, r_cur)
-    return result
+    key = FBox.end()
+    return result,key
 
 # Initial Split of the [plain|cipher]text
 # param plaintext - the [plain|cipher]text used at the beginning of the cipher
@@ -32,8 +36,7 @@ def join_text(l_fin, r_fin):
 # param lin - the left side of the text to go in
 # param rin - the right side of the text
 # return - the two halves of the [en|de]ciphered text
-def round(lin, rin):
-    import des0 as FBox # this will need to be dependant on the specified des version
+def round(FBox, lin, rin):
     lout = rin
     rout = FBox.cipher(rin) ^ lin
     return lout, rout
