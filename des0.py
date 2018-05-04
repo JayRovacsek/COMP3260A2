@@ -19,7 +19,7 @@ class des:
         return result
     
     def expand(self, text): # input text into an e-box
-        result = self.shuffle('ebox.json', result)
+        result = self.shuffle('ebox', result)
         return result
 
     def substitute(self, input): # parse the text through the s-box
@@ -28,14 +28,22 @@ class des:
 
     def permute(self, num): # permute the key
         if num is 1:
-            self.key = self.shuffle('PC-1.json', self.key)
+            self.key = self.shuffle('PC-1', self.key)
         else:
-            self.key = self.shuffle('PC-2.json', self.key)
+            self.key = self.shuffle('PC-2', self.key)
 
     def shuffle(self, filename, text): 
         # shuffle the text based on information in the json return shuffled text
-        with open(filename,'r') as f:
-            shuffleDict = json.load(f)
+        filename += ".arr"
+        shuffleText = ""
+        with open(filename, "r") as f:
+            string = f.read()
+            shuffleOrder = string.split(" ")
+        for i in range(0, len(shuffleOrder)):
+            if(shuffleOrder[i].endswith("\n")):
+                shuffleOrder[i][:-2] # remove newlines
+            curIndex = int(shuffleText[i])
+            shuffleText += text[curIndex:curIndex+1]
 
     def gen_key(self): # this is unfinished but still doesn't seem right yet
         shift = 2
