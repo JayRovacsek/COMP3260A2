@@ -1,6 +1,7 @@
 # the des0 function script
 # since: 02-MAY-2018
 # TODO: e-table, s-box, p-box : the tables of values, make them fast using numpy.array()
+# the inputs will already be in binary form
 import numpy as np
 import json
 class des:
@@ -17,39 +18,34 @@ class des:
         result = self.substitute(result) # use the sbox
         return result
     
-    def expand(self, text):
-        # input text into an e-box
-        # return result
-        with open('ebox.json','r'):
-            ebox_table = json.load(f)
-        
-        result = text
+    def expand(self, text): # input text into an e-box
+        result = self.shuffle('ebox.json', result)
         return result
 
-    def substitute(self, input):
+    def substitute(self, input): # parse the text through the s-box
         out = "" # sub input into out
         return out
 
-    def permute(self, num):
+    def permute(self, num): # permute the key
         if num is 1:
-            return # permute key through PC-1
+            self.key = self.shuffle('PC-1.json', self.key)
         else:
-            return # premute key through PC-2
+            self.key = self.shuffle('PC-2.json', self.key)
+
+    def shuffle(self, filename, text): 
+        # shuffle the text based on information in the json return shuffled text
+        with open(filename,'r') as f:
+            shuffleDict = json.load(f)
 
     def gen_key(self): # this is unfinished but still doesn't seem right yet
         shift = 2
         bit_num = len(self.c)
-        c_bits = ""
-        d_bits = ""
-        for i in range(0, bit_num):
-            c_bits += bin(ord(self.c[i:i+1]))[2:]
-            d_bits += bin(ord(self.d[i:i+1]))[2:]
-        for i in range(len(c_bits)-shift, len(c_bits)):
-            c_shift = c_bits[i:i+1]
-            d_shift = d_bits[i:i+1]
-        for i in range(0, len(c_bits)-shift):
-            c_shift = c_shift + c_bits[i:i+1]
-            d_shift = d_shift + d_bits[i:i+1]
+        for i in range(bit_num-shift, bit_num):
+            c_shift = self.c[i:i+1]
+            d_shift = self.d[i:i+1]
+        for i in range(0, bit_num-shift):
+            c_shift = c_shift + self.c[i:i+1]
+            d_shift = d_shift + self.d[i:i+1]
 
     def end(self):
         self.permute(2) # permute key as PC-2
