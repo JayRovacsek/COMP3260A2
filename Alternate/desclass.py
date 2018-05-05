@@ -2,15 +2,20 @@
 # since: 02-MAY-2018
 # TODO: e-table, s-box, p-box : the tables of values, make them fast using numpy.array()
 # the inputs will already be in binary form
-import numpy as np
 import json
 
 class des:
-    def __init__(self, key):
-        self.key = key
-        self.permute(1) # permute key as PC-1
-        self.c = self.key[:int(len(self.key)/2)]
-        self.d = self.key[int(len(self.key)/2):]
+    def __init__(self):
+        self.key = None
+        self.c = 32
+        self.d = 32
+        self.subkeys = {}
+        self.PC1 = self.import_json('Alternate/PC-1.json')
+        self.PC2 = self.import_json('Alternate/PC-2.json')
+    
+    def setattrs(self, **kwargs):
+        for k,v in kwargs.items():
+            setattr(self,k,v)
     
     def import_json(self,data_file):
         with open(data_file, encoding='utf-8') as f:
@@ -22,12 +27,6 @@ class des:
         result = self.key ^ e_text
         result = self.substitute(result) # use the sbox
         return result
-
-    def pad_text(self,text,hex):
-        if not hex:
-            for c in text:
-                hexstring += c.encode("hex")
-            #self.plaintext = 
     
     def expand(self, text): # input text into an e-box
         result = self.shuffle('ebox.json', text)
