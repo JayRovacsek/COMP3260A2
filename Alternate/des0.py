@@ -7,7 +7,6 @@ import json
 
 class des:
     def __init__(self, key):
-        
         self.key = key
         self.permute(1) # permute key as PC-1
         self.c = self.key[:int(len(self.key)/2)]
@@ -28,8 +27,7 @@ class des:
         if not hex:
             for c in text:
                 hexstring += c.encode("hex")
-            
-            self.plaintext = 
+            #self.plaintext = 
     
     def expand(self, text): # input text into an e-box
         result = self.shuffle('ebox.json', text)
