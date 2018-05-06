@@ -8,24 +8,32 @@
 # return - plaintext if ciphertext in, else ciphertext
 import traceback
 import sys
-import desclass
+import des
 import binascii
 
 def cipher(text,key):
-    des = desclass.des()
+    _des = des.des()
     if len(key)%64 is not 0:
         print('Key: {} was not 64 bits, now padding with 0\'s\nNew key: {} '.format(key,key.ljust(64,'0')))
-        des.key = key.ljust(64,'0')
+        _des.key = key.ljust(64,'0')
     else:
-        des.key = key
-    setattr(des,'c',32)
-    setattr(des,'d',32)
+        _des.key = key
+    setattr(_des,'c',32)
+    setattr(_des,'d',32)
 
     new_subkey = ""
-    for i in range(0,15):
-        for j in range(1,64):
-            if j % 8 is not 0:
-                new_subkey += key[des.PC1[str(j)]] # FIX ME 
+    keys = [None]*16
+    count = 0
+    for i in range(0,16):
+        for j in range(0,63):
+            if j % 8 is not 0 or j is 0:
+                # print("Added {} to key from {} index in determined by PC1".format(key[_des.PC1[str(j-count)]],_des.PC1[str(j-count)]))
+                new_subkey += key[_des.PC1[str(j-count)]]
+            else:
+                count += 1
+        keys[i] = new_subkey
+        count = 0
+        new_subkey = ""
     print(new_subkey)
 
     #     des.subkeys[i] = new_subkey
@@ -62,10 +70,10 @@ def parse_file(file):
     try:
         with open(file) as f:
             for line in f:
-                if 'P' not in values:
-                    values['P'] = line.replace("\n","")
-                elif 'K' not in values:
+                if 'K' not in values:
                     values['K'] = line.replace("\n","")
+                elif 'P' not in values:
+                    values['P'] = line.replace("\n","")
                 else:
                     print(line)
     except FileNotFoundError:
