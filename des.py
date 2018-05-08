@@ -45,9 +45,12 @@ def substitute(inText): # parse the text through the s-box
              import_json("s4.json"), import_json("s5.json"), import_json("s6.json"),
              import_json("s7.json"), import_json("s8.json")]
     out = "" # sub input into out
-    for i in range(0, 7):
+    for i in range(0, 8):
         # next retrieve numbers from s-box
-        out += bin(s_box[i][splitText[i]])[2:]
+        add = bin(s_box[i][splitText[i]])[2:] # the substitution piece
+        while len(add) < 4: # retain 4 bits per box
+            add = "0" + add
+        out += add
     return out
 
 def expand(text): # input text into an e-box
