@@ -1,6 +1,6 @@
 # the des0 function script
 # since: 02-MAY-2018
-# TODO: s-box, testing
+# TODO: key generation/permutation
 # the inputs will already be in binary form
 class des:
     def __init__(self, key): # instantiate and store key
@@ -11,9 +11,10 @@ class des:
 
     def round(self, text):
         e_text = expand(text) # use the ebox
-        self.gen_key()
-        result = xor(self.key, e_text)
-#        result = substitute(result) # use the sbox
+#        self.gen_key() # needs fixing
+#        result = xor("0"*32, e_text)
+        result = e_text # this is only for testing
+        result = substitute(result) # use the sbox
         return result
 
     def permute(self, num): # permute the key
@@ -40,12 +41,13 @@ class des:
 def substitute(inText): # parse the text through the s-box
     n = 6 # number of bytes the input is split into
     splitText = [inText[i:i+n] for i in range(0, len(inText), n)]
-    for i in range(0, 7):
-        row = splitText[i][0] + splitText[i][len(splitText[i])-1]
-        column = splitText[i][1:len(splitText[i])-2]
-        # next retrieve numbers from s-box
-
+    s_box = [import_json("s1.json"), import_json("s2.json"), import_json("s3.json"),
+             import_json("s4.json"), import_json("s5.json"), import_json("s6.json"),
+             import_json("s7.json"), import_json("s8.json")]
     out = "" # sub input into out
+    for i in range(0, 7):
+        # next retrieve numbers from s-box
+        out += bin(s_box[i][splitText[i]])[2:]
     return out
 
 def expand(text): # input text into an e-box
@@ -64,7 +66,7 @@ def shuffle(filename, text):
         shuffleText += text[value-1 : value]   
     return shuffleText
 
-def xor(a, b):
+def xor(a, b): # this is bad
     if len(a) > len(b):
         length = len(b)
         offset_a = len(a) - length
@@ -84,6 +86,5 @@ def xor(a, b):
     return result
 
 if __name__ == "__main__": # test fn
-    d = des("0000")
-    print(d.round("1111111111111111111111111111"))
-#    print(expand("abcdefghijklmnopqrstuvwxyzabcdef")) # expansion test
+    d = des("0"*64)
+    print(d.round("1"*32))

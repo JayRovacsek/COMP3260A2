@@ -7,15 +7,15 @@
 # param text - the [plain|cipher]text
 # return - plaintext if ciphertext in, else ciphertext
 import des0 # this will need to be dependant on the specified des version
-def cipher(text,key):
+def cipher(text, key):
     FBox = des0.des(key)
     l_cur, r_cur = split_text(text)
     for i in range(0,15):
-        l_cur, r_cur = round(FBox, l_cur, r_cur)
+        l_cur, r_cur = cipher_round(FBox, l_cur, r_cur)
     l_cur, r_cur = r_cur, l_cur
     result = join_text(l_cur, r_cur)
     key = FBox.end()
-    return result,key
+    return result, key
 
 # Initial Split of the [plain|cipher]text
 # param plaintext - the [plain|cipher]text used at the beginning of the cipher
@@ -36,7 +36,7 @@ def join_text(l_fin, r_fin):
 # param lin - the left side of the text to go in
 # param rin - the right side of the text
 # return - the two halves of the [en|de]ciphered text
-def round(FBox, lin, rin):
+def cipher_round(FBox, lin, rin):
     lout = rin
-    rout = FBox.cipher(rin) ^ lin
+    rout = des0.xor(FBox.cipher(rin), lin)
     return lout, rout
