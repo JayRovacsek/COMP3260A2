@@ -9,7 +9,6 @@
 import traceback
 import sys
 import des
-import binascii
 
 def cipher(text,key):
     _des = des.des()
@@ -18,23 +17,8 @@ def cipher(text,key):
         _des.key = key.ljust(64,'0')
     else:
         _des.key = key
-    setattr(_des,'c',32)
-    setattr(_des,'d',32)
 
-    new_subkey = ""
-    keys = [None]*16
-    count = 0
-    for i in range(0,16):
-        for j in range(0,63):
-            if j % 8 is not 0 or j is 0:
-                # print("Added {} to key from {} index in determined by PC1".format(key[_des.PC1[str(j-count)]],_des.PC1[str(j-count)]))
-                new_subkey += key[_des.PC1[str(j-count)]]
-            else:
-                count += 1
-        keys[i] = new_subkey
-        count = 0
-        new_subkey = ""
-    print(new_subkey)
+    setattr(_des,'keyP1',_des.shuffle(_des.PC1,_des.key))
 
     #     des.subkeys[i] = new_subkey
     # l_cur, r_cur = r_cur, l_cur
@@ -70,10 +54,10 @@ def parse_file(file):
     try:
         with open(file) as f:
             for line in f:
-                if 'K' not in values:
-                    values['K'] = line.replace("\n","")
-                elif 'P' not in values:
+                if 'P' not in values:
                     values['P'] = line.replace("\n","")
+                elif 'K' not in values:
+                    values['K'] = line.replace("\n","")
                 else:
                     print(line)
     except FileNotFoundError:

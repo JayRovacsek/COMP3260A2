@@ -7,8 +7,7 @@ import json
 class des:
     def __init__(self):
         self.key = None
-        self.c = 32
-        self.d = 32
+        self.keyP1 = None
         self.subkeys = {}
         self.PC1 = self.import_json('Alternate/PC-1.json')
         self.PC2 = self.import_json('Alternate/PC-2.json')
@@ -38,16 +37,16 @@ class des:
 
     def permute(self, num): # permute the key
         if num is 1:
-            self.key = self.shuffle('PC-1.json', self.key)
+            self.key = self.shuffle('Alternate/PC-1.json', self.key)
         else:
-            self.key = self.shuffle('PC-2.json', self.key)
+            self.key = self.shuffle('Alternate/PC-2.json', self.key)
 
-    def shuffle(self, filename, text): 
+    def shuffle(self, shuffle_dict, text): 
         # shuffle the text based on information in the json return shuffled text
-        shuffleText = ""
-        shuffle_dict = self.import_json('PC-1.json')
+        shuffle_text = ""
         for key,value in shuffle_dict.items():
-            shuffleText += text[value:value+1]
+            shuffle_text += text[value:value+1]
+        return shuffle_text
 
     def gen_key(self): # this is unfinished but still doesn't seem right yet
         shift = 2
