@@ -4,15 +4,16 @@
 # the inputs will already be in binary form
 class des:
     def __init__(self, key): # instantiate and store key
+        key = pad_key(key)
         self.key = key
         self.permute(1) # permute key as PC-1
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
 
-    def round(self, text):
+    def round(self, text): # a round of the des encryption
         e_text = expand(text) # use the ebox
-#        self.gen_key() # needs fixing
-#        result = xor("0"*32, e_text)
+        self.gen_key() # needs fixing
+        result = xor(self.c, e_text)
         result = e_text # this is only for testing
         result = substitute(result) # use the sbox
         return result
@@ -33,7 +34,7 @@ class des:
             c_shift = c_shift + self.c[i:i+1]
             d_shift = d_shift + self.d[i:i+1]
 
-    def end(self):
+    def end(self): # the final permutation of the key
         self.permute(2) # permute key as PC-2
         return self.key
 
@@ -57,19 +58,19 @@ def expand(text): # input text into an e-box
     result = shuffle('ebox', text)
     return result
 
-def import_json(data_file):
+def import_json(data_file): # import a json and return a dictionary
     import json
     with open(data_file, encoding='utf-8') as f:
         return json.loads(f.read())
 
-def shuffle(filename, text):
+def shuffle(filename, text): # shuffle the text in accordance to a json file
     shuffleText = ""
     shuffleDict = import_json(filename + ".json")
     for key, value in shuffleDict.items():
         shuffleText += text[value-1 : value]   
     return shuffleText
 
-def xor(a, b): # this is bad
+def xor(a, b): # XOR strings containing binary together
     if len(a) > len(b):
         length = len(b)
         offset_a = len(a) - length
@@ -88,6 +89,23 @@ def xor(a, b): # this is bad
             result += "0"
     return result
 
+def pad_key(key): # pads the key using even parity calculations
+    if len(key) == 56:
+        split_key = [key[i: i+7] for i in range(0, len(key), 7)]
+        for i in range(0, len(split_key)):
+            bit_count = 0
+            for j in range(0, len(split_key[i])):
+                if split_key[i][j] == "1":
+                    bit_count += 1
+                if (bit_count % 2) is 0:
+                    parity = "0"
+                else:
+                    parity = "1"
+                split_key[i] += parity
+        return "".join(split_key)
+    else:
+        return key # in other cases there is no way of calculating parity
+
 if __name__ == "__main__": # test fn
-    d = des("0"*64)
+    d = des("0"*56)
     print(d.round("1"*32))
