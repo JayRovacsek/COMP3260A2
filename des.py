@@ -9,10 +9,8 @@ import sys
 class des:
     def __init__(self, key, mode): # instantiate and store key
         key = pad_key(key)
-        print("Padded key: {}".format(key))
         self.key = key
         self.permute1() # permute key as PC-1
-        print("PC-1 key: {}".format(self.key))
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
         self.round = 1
@@ -53,7 +51,9 @@ class des:
         print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
         e_text = expand(right_text) # use the ebox
         print("expansion test: {}".format(e_text))
-        result = xor(self.gen_key(), e_text)
+        cur_key = self.gen_key()
+        print("round key: ", cur_key)
+        result = xor(cur_key, e_text)
         print("xor text: {}".format(result))
         result = substitute(result, self.mode) # use the sbox
         print("subbed text: {}".format(result))
@@ -84,6 +84,8 @@ class des:
         for i in range(0, shift):
             c_shift += self.c[i:i+1]
             d_shift += self.d[i:i+1]
+        self.c = c_shift
+        self.d = d_shift
         return self.permute2()
 
     def permute2(self):
@@ -93,14 +95,9 @@ class des:
 def substitute(inText,mode): # parse the text through the s-box
     n = 6 # number of bytes the input is split into
     split_text = [inText[i:i+n] for i in range(0, len(inText), n)]
-    if True: #mode == "encrypt":
-        s_box = [import_json("s1.json"), import_json("s2.json"), import_json("s3.json"),
-                import_json("s4.json"), import_json("s5.json"), import_json("s6.json"),
-                import_json("s7.json"), import_json("s8.json")]
-    elif mode == "decrypt":
-        s_box = [import_json("s8.json"), import_json("s7.json"), import_json("s6.json"),
-                import_json("s5.json"), import_json("s4.json"), import_json("s3.json"),
-                import_json("s2.json"), import_json("s1.json")]
+    s_box = [import_json("s1.json"), import_json("s2.json"), import_json("s3.json"),
+             import_json("s4.json"), import_json("s5.json"), import_json("s6.json"),
+             import_json("s7.json"), import_json("s8.json")]
     out = "" # sub input into out
     for i in range(0, 8):
         # next retrieve numbers from s-box
