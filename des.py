@@ -14,7 +14,6 @@ class des:
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
         self.round = 1
-        self.m = {}
         self.mode = mode
 
     # encrypt plaintext
@@ -49,12 +48,9 @@ class des:
                 print("File saved to: {}/Results/decrypt.results".format(os.getcwd()))
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
-
         return text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
-        self.m[(self.round*2)-1] = left_text
-        self.m[self.round*2] = right_text
         print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
         e_text = expand(right_text) # use the ebox
         print("expansion text: {}".format(e_text))
@@ -79,14 +75,14 @@ class des:
         self.key = shuffle('PC-1', self.key)
 
     def gen_key(self): # shift the key
-        if (self.round >= 3 and self.round <= 8) or (self.round >= 10 and self.round <= 15):
-            shift = 2
+        shift_order = import_json('shift.json')
+        if self.mode == "encrypt":
+            shift = shift_order[str(self.round)]
         else:
-            shift = 1
-        bit_num = len(self.c)
-        c_shift = ""
-        d_shift = ""
-        for i in range(shift, bit_num):
+            shift = shift_order[str(17-self.round)]
+            print(shift_order[str(17-self.round)])
+        c_shift, d_shift = "",""
+        for i in range(shift, len(self.c)):
             c_shift += self.c[i:i+1]
             d_shift += self.d[i:i+1]
         for i in range(0, shift):
@@ -131,10 +127,9 @@ def shuffle(filename, text): # shuffle the text in accordance to a json file
         shuffle_text += text[value-1 : value]   
     return shuffle_text
 
-# Key = a(48), text = b (32)
 def xor(key, text): # XOR strings containing binary together
     result = ""
-    text = text.zfill(len(text))
+    text = text.zfill(len(key))
     for k, t in zip(key,text):
         result += str(int(k) ^ int(t))
     return result
@@ -155,7 +150,3 @@ def pad_key(key): # pads the key using even parity calculations
         return "".join(split_key)
     else:
         return key # in other cases there is no way of calculating parity
-
-if __name__ == "__main__":
-    _des = des('00010010011010010101101111001001101101111011011111111000',"encrypt")
-    print(_des.encrypt('0000000100100011010001010110011110001001101010111100110111101111'))
