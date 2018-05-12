@@ -20,6 +20,13 @@ class des:
             left_text, right_text = self.round_fun(left_text, right_text)
         return right_text + left_text, self.key
 
+    def decrypt(self, text):
+        left_text = text[:int(len(text)/2)]
+        right_text = text[int(len(text)/2):]
+        for i in range(0, 16):
+            left_text, right_text = self.round_fun(left_text, right_text)
+        return right_text + left_text, self.key
+
     def round_fun(self, left_text, right_text): # a round of the des encryption
         e_text = expand(right_text) # use the ebox
         result = xor(self.gen_key(), e_text)
