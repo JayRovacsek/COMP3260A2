@@ -2,6 +2,10 @@
 # since: 02-MAY-2018
 # TODO: make code neat, avalanche effect, output, decryption
 # the inputs will already be in binary form
+import os
+import traceback
+import sys
+
 class des:
     def __init__(self, key): # instantiate and store key
         key = pad_key(key)
@@ -18,6 +22,13 @@ class des:
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
             left_text, right_text = self.round_fun(left_text, right_text)
+        try:
+            with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
+                f.write(right_text + left_text + "\n")
+                f.write(self.key)
+                print("File saved to: {}/Results/encrypt.results".format(os.getcwd()))
+        except Exception:
+            print("An error occurred: {}".format(traceback.format_exc()))
         return right_text + left_text, self.key
 
     def decrypt(self, text):
@@ -25,6 +36,14 @@ class des:
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
             left_text, right_text = self.round_fun(left_text, right_text)
+        try:
+            with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f:
+                f.write(right_text + left_text + "\n")
+                f.write(self.key)
+                print("File saved to: {}/Results/decrypt.results".format(os.getcwd()))
+        except Exception:
+            print("An error occurred: {}".format(traceback.format_exc()))
+
         return right_text + left_text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
