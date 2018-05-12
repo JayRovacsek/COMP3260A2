@@ -35,6 +35,7 @@ class des:
         return text, self.key
 
     def decrypt(self, text):
+        text = shuffle('IP', text)
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
@@ -47,7 +48,8 @@ class des:
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
 
-        return right_text + left_text, self.key
+        text = shuffle('IPinverse', right_text + left_text)
+        return text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
         print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
@@ -136,10 +138,10 @@ def xor(a, b): # XOR strings containing binary together
         offset_b = len(b) - length
     result = ""
     for i in range(0, length):
-        if a[offset_a + i] == "1" or b[offset_b + i] == "1":
-            result += "1"
-        else:
+        if a[offset_a + i] == b[offset_b + i]:
             result += "0"
+        else:
+            result += "1"
     return result
 
 def pad_key(key): # pads the key using even parity calculations
