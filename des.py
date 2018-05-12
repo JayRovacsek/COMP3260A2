@@ -32,9 +32,11 @@ class des:
                 print("File saved to: {}/Results/encrypt.results".format(os.getcwd()))
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
-        return right_text + left_text, self.key
+        text = shuffle('IPinverse', right_text + left_text)
+        return text, self.key
 
     def decrypt(self, text):
+        text = shuffle('IP', text)
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
@@ -47,14 +49,15 @@ class des:
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
 
-        return right_text + left_text, self.key
+        text = shuffle('IPinverse', right_text + left_text)
+        return text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
         self.m[(self.round*2)-1] = left_text
         self.m[self.round*2] = right_text
         print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
         e_text = expand(right_text) # use the ebox
-        print("expansion test: {}".format(e_text))
+        print("expansion text: {}".format(e_text))
         cur_key = self.gen_key()
         print("round key: ", cur_key)
         result = xor(cur_key, e_text)
