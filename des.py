@@ -1,22 +1,24 @@
-# the des0 function script
+# the des function script
 # since: 02-MAY-2018
-# TODO: p-box, make code neat, avalanche effect, output, decryption
+# TODO: make code neat, avalanche effect, output, decryption
 # the inputs will already be in binary form
 class des:
     def __init__(self, key): # instantiate and store key
         key = pad_key(key)
         self.key = key
-        self.permute(1) # permute key as PC-1
+        self.permute1() # permute key as PC-1
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
         self.round = 1
 
+    # encrypt plaintext
+    # return cipher text with final swap and key in tuple
     def encrypt(self, text):
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
             left_text, right_text = self.round_fun(left_text, right_text)
-        return left_text + right_text, self.key
+        return right_text + left_text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
         e_text = expand(right_text) # use the ebox
@@ -29,11 +31,8 @@ class des:
         right_text = result
         return left_text, right_text
 
-    def permute(self, num): # permute the key
-        if num is 1:
-            self.key = shuffle('PC-1', self.key)
-        else:
-            self.key = shuffle('PC-2', self.key)
+    def permute1(self): # permute the key
+        self.key = shuffle('PC-1', self.key)
 
     def gen_key(self): # shift the key
         if (self.round >= 3 and self.round <= 8) or (self.round >= 10 and self.round <= 15):
@@ -41,20 +40,16 @@ class des:
         else:
             shift = 1
         bit_num = len(self.c)
-        for i in range(bit_num - shift, bit_num):
+        for i in range(shift, bit_num):
             c_shift = self.c[i:i+1]
             d_shift = self.d[i:i+1]
-        for i in range(0, bit_num - shift):
+        for i in range(0, shift):
             c_shift = c_shift + self.c[i:i+1]
             d_shift = d_shift + self.d[i:i+1]
         return self.permute2()
 
     def permute2(self):
         return shuffle('PC-2', self.c + self.d)
-
-    def end(self): # the final permutation of the key
-        self.permute(2) # permute key as PC-2
-        return self.key
 
 # Text substitution functions
 def substitute(inText): # parse the text through the s-box
@@ -125,3 +120,4 @@ def pad_key(key): # pads the key using even parity calculations
 if __name__ == "__main__": # test fn
     d = des("0"*56)
     print(d.encrypt("1"*32 + "0"*32))
+#    print(d.encrypt("0011100011011011111110011100101111111111111111111111111111111111"))
