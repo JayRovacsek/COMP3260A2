@@ -26,11 +26,11 @@ if __name__ == "__main__":
         if len(values) is not 0:
             if args[0] == '-e' or args[0] == '--encrypt':
                 _des = des.des(values['K'],"encrypt")
-                print("Encrypting using:\nKey: {}\nPlaintext: {}".format(values['P'],values['K']))
+                print("Encrypting using:\nPlaintext: {}\nKey: {}".format(values['P'], values['K']))
                 print(_des.encrypt(values['P']))
             elif args[0] == '-d' or args[0] == '--decrypt':
                 _des = des.des(values['K'],"decrypt")
-                print("Decrypting using:\nKey: {}\nPlaintext: {}".format(values['P'],values['K']))
+                print("Decrypting using:\nPlaintext: {}\nKey: {}".format(values['P'], values['K']))
                 print(_des.decrypt(values['P']))
             else:
                 print("An expected encrypt/decrypt flag was not found, please refer to the README.md\n" +
