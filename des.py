@@ -14,11 +14,13 @@ class des:
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
         self.round = 1
+        self.m = {}
         self.mode = mode
 
     # encrypt plaintext
     # return cipher text with final swap and key in tuple
     def encrypt(self, text):
+        text = shuffle('IP', text)
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
@@ -48,6 +50,8 @@ class des:
         return right_text + left_text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
+        self.m[(self.round*2)-1] = left_text
+        self.m[self.round*2] = right_text
         print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
         e_text = expand(right_text) # use the ebox
         print("expansion test: {}".format(e_text))
@@ -61,6 +65,7 @@ class des:
         print("Permuted text: {}".format(result))
         result = xor(result, left_text)
         print("xored with left: {}".format(result))
+
         self.round += 1
         left_text = right_text
         right_text = result
@@ -123,21 +128,12 @@ def shuffle(filename, text): # shuffle the text in accordance to a json file
         shuffle_text += text[value-1 : value]   
     return shuffle_text
 
-def xor(a, b): # XOR strings containing binary together
-    if len(a) > len(b):
-        length = len(b)
-        offset_a = len(a) - length
-        offset_b = 0
-    else:
-        length = len(a)
-        offset_a = 0
-        offset_b = len(b) - length
+# Key = a(48), text = b (32)
+def xor(key, text): # XOR strings containing binary together
     result = ""
-    for i in range(0, length):
-        if a[offset_a + i] == "1" or b[offset_b + i] == "1":
-            result += "1"
-        else:
-            result += "0"
+    text = text.zfill(len(text))
+    for k, t in zip(key,text):
+        result += str(int(k) ^ int(t))
     return result
 
 def pad_key(key): # pads the key using even parity calculations
@@ -156,3 +152,7 @@ def pad_key(key): # pads the key using even parity calculations
         return "".join(split_key)
     else:
         return key # in other cases there is no way of calculating parity
+
+if __name__ == "__main__":
+    _des = des('00010010011010010101101111001001101101111011011111111000',"encrypt")
+    print(_des.encrypt('0000000100100011010001010110011110001001101010111100110111101111'))
