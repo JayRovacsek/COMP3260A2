@@ -7,7 +7,7 @@ import traceback
 import sys
 
 class des:
-    def __init__(self, key, mode): # instantiate and store key
+    def __init__(self, key, mode): # instantiate store key and set mode
         key = pad_key(key)
         self.key = key
         self.permute1() # permute key as PC-1
