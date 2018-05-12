@@ -14,7 +14,9 @@ class des:
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
         self.round = 1
+        self.subkeys = {}
         self.mode = mode
+        self.generate_subkeys()
 
     # encrypt plaintext
     # return cipher text with final swap and key in tuple
@@ -48,15 +50,20 @@ class des:
                 print("File saved to: {}/Results/decrypt.results".format(os.getcwd()))
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
+        for k in self.subkeys:
+            print(self.subkeys[k])
         return text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
         print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
         e_text = expand(right_text) # use the ebox
         print("expansion text: {}".format(e_text))
-        cur_key = self.gen_key()
-        print("round key: ", cur_key)
-        result = xor(cur_key, e_text)
+        # cur_key = self.subkeys[str(self.round)]
+        # print("round key: ", cur_key)
+        if self.mode == "encrypt":
+            result = xor(self.subkeys[str(self.round)], e_text)
+        else:
+            result = xor(self.subkeys[str(17-self.round)], e_text)
         print("xor text: {}".format(result))
         result = substitute(result, self.mode) # use the sbox
         print("subbed text: {}".format(result))
@@ -74,13 +81,26 @@ class des:
     def permute1(self): # permute the key
         self.key = shuffle('PC-1', self.key)
 
+    def generate_subkeys(self):
+        shift_order = import_json('shift.json')
+        c = self.c
+        d = self.d
+        for k in range(1,17):
+            shift = shift_order[str(k)]
+            c_shift, d_shift = "",""
+            for i in range(shift, len(c)):
+                c_shift += c[i:i+1]
+                d_shift += d[i:i+1]
+            for i in range(0, shift):
+                c_shift += c[i:i+1]
+                d_shift += d[i:i+1]
+            c = c_shift
+            d = d_shift
+            self.subkeys[str(k)] = shuffle('PC-2', c + d)
+
     def gen_key(self): # shift the key
         shift_order = import_json('shift.json')
-        if self.mode == "encrypt":
-            shift = shift_order[str(self.round)]
-        else:
-            shift = shift_order[str(17-self.round)]
-            print(shift_order[str(17-self.round)])
+        shift = shift_order[str(self.round)]
         c_shift, d_shift = "",""
         for i in range(shift, len(self.c)):
             c_shift += self.c[i:i+1]
