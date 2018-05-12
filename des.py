@@ -25,14 +25,14 @@ class des:
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
             left_text, right_text = self.round_fun(left_text, right_text)
+        text = shuffle('IPinverse', right_text + left_text)
         try:
             with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
-                f.write(right_text + left_text + "\n")
+                f.write(text + "\n")
                 f.write(self.key)
                 print("File saved to: {}/Results/encrypt.results".format(os.getcwd()))
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
-        text = shuffle('IPinverse', right_text + left_text)
         return text, self.key
 
     def decrypt(self, text):
@@ -41,15 +41,15 @@ class des:
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
             left_text, right_text = self.round_fun(left_text, right_text)
+        text = shuffle('IPinverse', right_text + left_text)
         try:
             with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f:
-                f.write(right_text + left_text + "\n")
+                f.write(text + "\n")
                 f.write(self.key)
                 print("File saved to: {}/Results/decrypt.results".format(os.getcwd()))
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
 
-        text = shuffle('IPinverse', right_text + left_text)
         return text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
