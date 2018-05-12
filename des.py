@@ -47,12 +47,14 @@ class des:
         else:
             shift = 1
         bit_num = len(self.c)
+        c_shift = ""
+        d_shift = ""
         for i in range(shift, bit_num):
-            c_shift = self.c[i:i+1]
-            d_shift = self.d[i:i+1]
+            c_shift += self.c[i:i+1]
+            d_shift += self.d[i:i+1]
         for i in range(0, shift):
-            c_shift = c_shift + self.c[i:i+1]
-            d_shift = d_shift + self.d[i:i+1]
+            c_shift += self.c[i:i+1]
+            d_shift += self.d[i:i+1]
         return self.permute2()
 
     def permute2(self):
