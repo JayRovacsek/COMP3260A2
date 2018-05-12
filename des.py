@@ -18,12 +18,11 @@ class des:
             left_text, right_text = self.round_fun(left_text, right_text)
         return left_text + right_text, self.key
 
-
     def round_fun(self, left_text, right_text): # a round of the des encryption
         e_text = expand(right_text) # use the ebox
         result = xor(self.gen_key(), e_text)
         result = substitute(result) # use the sbox
-        # permute text, use p-box on result
+        result = shuffle('P', result) # permute text
         result = xor(result, left_text)
         self.round += 1
         left_text = right_text
