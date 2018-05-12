@@ -18,6 +18,13 @@ class des:
             left_text, right_text = self.round_fun(left_text, right_text)
         return left_text + right_text, self.key
 
+    def decrypt(self, text):
+        left_text = text[:int(len(text)/2)]
+        right_text = text[int(len(text)/2):]    # TEMPORARY
+        for i in range(0, 16):
+            left_text, right_text = self.round_fun(left_text, right_text)
+        return left_text + right_text, self.key
+
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
         e_text = expand(right_text) # use the ebox
@@ -60,14 +67,14 @@ class des:
 # Text substitution functions
 def substitute(inText): # parse the text through the s-box
     n = 6 # number of bytes the input is split into
-    splitText = [inText[i:i+n] for i in range(0, len(inText), n)]
+    split_text = [inText[i:i+n] for i in range(0, len(inText), n)]
     s_box = [import_json("s1.json"), import_json("s2.json"), import_json("s3.json"),
              import_json("s4.json"), import_json("s5.json"), import_json("s6.json"),
              import_json("s7.json"), import_json("s8.json")]
     out = "" # sub input into out
     for i in range(0, 8):
         # next retrieve numbers from s-box
-        add = bin(s_box[i][splitText[i]])[2:] # the substitution piece
+        add = bin(s_box[i][split_text[i]])[2:] # the substitution piece
         while len(add) < 4: # retain 4 bits per box
             add = "0" + add
         out += add
@@ -83,11 +90,11 @@ def import_json(data_file): # import a json and return a dictionary
         return json.loads(f.read())
 
 def shuffle(filename, text): # shuffle the text in accordance to a json file
-    shuffleText = ""
-    shuffleDict = import_json(filename + ".json")
-    for key, value in shuffleDict.items():
-        shuffleText += text[value-1 : value]   
-    return shuffleText
+    shuffle_text = ""
+    shuffle_dict = import_json(filename + ".json")
+    for key, value in shuffle_dict.items():
+        shuffle_text += text[value-1 : value]   
+    return shuffle_text
 
 def xor(a, b): # XOR strings containing binary together
     if len(a) > len(b):
@@ -122,7 +129,3 @@ def pad_key(key): # pads the key using even parity calculations
         return "".join(split_key)
     else:
         return key # in other cases there is no way of calculating parity
-
-if __name__ == "__main__": # test fn
-    d = des("0"*56)
-    print(d.encrypt("1"*32 + "0"*32))
