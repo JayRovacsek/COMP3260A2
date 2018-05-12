@@ -47,10 +47,10 @@ class des:
 
         return right_text + left_text, self.key
 
-    def round_fun(self, left_text, right_text,mode): # a round of the des encryption
+    def round_fun(self, left_text, right_text): # a round of the des encryption
         e_text = expand(right_text) # use the ebox
         result = xor(self.gen_key(), e_text)
-        result = substitute(result,mode) # use the sbox
+        result = substitute(result,self.mode) # use the sbox
         result = shuffle('P', result) # permute text
         result = xor(result, left_text)
         self.round += 1
