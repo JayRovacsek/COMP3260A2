@@ -22,7 +22,7 @@ class des:
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
-            left_text, right_text = self.round_fun(left_text, right_text, self.mode)
+            left_text, right_text = self.round_fun(left_text, right_text)
         try:
             with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
                 f.write(right_text + left_text + "\n")
@@ -36,7 +36,7 @@ class des:
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
-            left_text, right_text = self.round_fun(left_text, right_text, self.mode)
+            left_text, right_text = self.round_fun(left_text, right_text)
         try:
             with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f:
                 f.write(right_text + left_text + "\n")
