@@ -25,17 +25,19 @@ if __name__ == "__main__":
         values = parse_file(args[1])
         if len(values) is not 0:
             _des = des.des(values['K'])
-        if args[0] == '-e' or args[0] == '--encrypt':
-            if len(values) is not 0:
-                print("Encrypting using:\nKey: {}\nPlaintext: {}".format(values['P'],values['K']))
-                print(_des.encrypt(values['P']))
-        elif args[0] == '-d' or args[0] == '--decrypt':
-            if len(values) is not 0:
-                print("Decrypting using:\nKey: {}\nPlaintext: {}".format(values['P'],values['K']))
-                print(_des.decrypt(values['P']))
+            if args[0] == '-e' or args[0] == '--encrypt':
+                if len(values) is not 0:
+                    print("Encrypting using:\nKey: {}\nPlaintext: {}".format(values['P'],values['K']))
+                    print(_des.encrypt(values['P']))
+            elif args[0] == '-d' or args[0] == '--decrypt':
+                if len(values) is not 0:
+                    print("Decrypting using:\nKey: {}\nPlaintext: {}".format(values['P'],values['K']))
+                    print(_des.decrypt(values['P']))
+            else:
+                print("An expected encrypt/decrypt flag was not found, please refer to the README.md\n" +
+                "For encryption use the -e/--encrypt flag, eg;\n\"application.py -e testfile\" OR \"application.py --encrypt testfile\"" +
+                "\nFor decryption please use the -d/--decrypt flag eg;\n\"application.py -d testfile\" OR \"application.py --decrypt testfile\"")
         else:
-            print("An expected encrypt/decrypt flag was not found, please refer to the README.md\n" +
-            "For encryption use the -e/--encrypt flag, eg;\n\"application.py -e testfile\" OR \"application.py --encrypt testfile\"" +
-            "\nFor decryption please use the -d/--decrypt flag eg;\n\"application.py -d testfile\" OR \"application.py --decrypt testfile\"")
+            print("You may have accidentally tried to use a file that did not have a key/text pair")
     else:
         print("Length of arguments was not sufficient, please refer to the README.md")
