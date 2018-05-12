@@ -7,13 +7,14 @@ import traceback
 import sys
 
 class des:
-    def __init__(self, key): # instantiate and store key
+    def __init__(self, key, mode): # instantiate and store key
         key = pad_key(key)
         self.key = key
         self.permute1() # permute key as PC-1
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
         self.round = 1
+        self.mode = mode
 
     # encrypt plaintext
     # return cipher text with final swap and key in tuple
@@ -21,7 +22,7 @@ class des:
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
-            left_text, right_text = self.round_fun(left_text, right_text)
+            left_text, right_text = self.round_fun(left_text, right_text, self.mode)
         try:
             with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
                 f.write(right_text + left_text + "\n")
@@ -35,7 +36,7 @@ class des:
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
         for i in range(0, 16):
-            left_text, right_text = self.round_fun(left_text, right_text)
+            left_text, right_text = self.round_fun(left_text, right_text, self.mode)
         try:
             with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f:
                 f.write(right_text + left_text + "\n")
@@ -46,10 +47,10 @@ class des:
 
         return right_text + left_text, self.key
 
-    def round_fun(self, left_text, right_text): # a round of the des encryption
+    def round_fun(self, left_text, right_text,mode): # a round of the des encryption
         e_text = expand(right_text) # use the ebox
         result = xor(self.gen_key(), e_text)
-        result = substitute(result) # use the sbox
+        result = substitute(result,mode) # use the sbox
         result = shuffle('P', result) # permute text
         result = xor(result, left_text)
         self.round += 1
@@ -80,12 +81,17 @@ class des:
         return shuffle('PC-2', self.c + self.d)
 
 # Text substitution functions
-def substitute(inText): # parse the text through the s-box
+def substitute(inText,mode): # parse the text through the s-box
     n = 6 # number of bytes the input is split into
     split_text = [inText[i:i+n] for i in range(0, len(inText), n)]
-    s_box = [import_json("s1.json"), import_json("s2.json"), import_json("s3.json"),
-             import_json("s4.json"), import_json("s5.json"), import_json("s6.json"),
-             import_json("s7.json"), import_json("s8.json")]
+    if mode == "encrypt":
+        s_box = [import_json("s1.json"), import_json("s2.json"), import_json("s3.json"),
+                import_json("s4.json"), import_json("s5.json"), import_json("s6.json"),
+                import_json("s7.json"), import_json("s8.json")]
+    elif mode == "decrypt":
+        s_box = [import_json("s8.json"), import_json("s7.json"), import_json("s6.json"),
+                import_json("s5.json"), import_json("s4.json"), import_json("s3.json"),
+                import_json("s2.json"), import_json("s1.json")]
     out = "" # sub input into out
     for i in range(0, 8):
         # next retrieve numbers from s-box
