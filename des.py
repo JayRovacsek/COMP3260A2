@@ -1,6 +1,6 @@
 # the des0 function script
 # since: 02-MAY-2018
-# TODO: key generation/permutation
+# TODO: p-box, make code neat, avalanche effect, output, decryption
 # the inputs will already be in binary form
 class des:
     def __init__(self, key): # instantiate and store key
@@ -9,14 +9,26 @@ class des:
         self.permute(1) # permute key as PC-1
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
+        self.round = 1
 
-    def round(self, text): # a round of the des encryption
-        e_text = expand(text) # use the ebox
-        self.gen_key() # needs fixing
-        result = xor(self.c, e_text)
-        result = e_text # this is only for testing
+    def encrypt(self, text):
+        left_text = text[:int(len(text)/2)]
+        right_text = text[int(len(text)/2):]
+        for i in range(0, 16):
+            left_text, right_text = self.round_fun(left_text, right_text)
+        return left_text + right_text, self.key
+
+
+    def round_fun(self, left_text, right_text): # a round of the des encryption
+        e_text = expand(right_text) # use the ebox
+        result = xor(self.gen_key(), e_text)
         result = substitute(result) # use the sbox
-        return result
+        # permute text, use p-box on result
+        result = xor(result, left_text)
+        self.round += 1
+        left_text = right_text
+        right_text = result
+        return left_text, right_text
 
     def permute(self, num): # permute the key
         if num is 1:
@@ -25,7 +37,10 @@ class des:
             self.key = shuffle('PC-2', self.key)
 
     def gen_key(self): # shift the key
-        shift = 2
+        if (self.round >= 3 and self.round <= 8) or (self.round >= 10 and self.round <= 15):
+            shift = 2
+        else:
+            shift = 1
         bit_num = len(self.c)
         for i in range(bit_num - shift, bit_num):
             c_shift = self.c[i:i+1]
@@ -33,6 +48,10 @@ class des:
         for i in range(0, bit_num - shift):
             c_shift = c_shift + self.c[i:i+1]
             d_shift = d_shift + self.d[i:i+1]
+        return self.permute2()
+
+    def permute2(self):
+        return shuffle('PC-2', self.c + self.d)
 
     def end(self): # the final permutation of the key
         self.permute(2) # permute key as PC-2
@@ -81,9 +100,7 @@ def xor(a, b): # XOR strings containing binary together
         offset_b = len(b) - length
     result = ""
     for i in range(0, length):
-        if a[offset_a + i] == "1" and b[offset_b + i] == "1":
-            result += "0"
-        elif a[offset_a + i] == "1" or b[offset_b + i] == "1":
+        if a[offset_a + i] == "1" or b[offset_b + i] == "1":
             result += "1"
         else:
             result += "0"
@@ -108,4 +125,4 @@ def pad_key(key): # pads the key using even parity calculations
 
 if __name__ == "__main__": # test fn
     d = des("0"*56)
-    print(d.round("1"*32))
+    print(d.encrypt("1"*32 + "0"*32))

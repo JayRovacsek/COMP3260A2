@@ -1,4 +1,5 @@
 # Script For a Feistal Block cipher, requires a Function.{Cipher,Decipher}
+# deprecated
 # Modified: 03-MAY-2018
 # Author: Cody Lewis
 # Since: 02-MAY-2018
