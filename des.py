@@ -9,8 +9,10 @@ import sys
 class des:
     def __init__(self, key, mode): # instantiate store key and set mode
         key = pad_key(key)
+        print("Padded key: {}".format(key))
         self.key = key
         self.permute1() # permute key as PC-1
+        print("PC-1 key: {}".format(self.key))
         self.c = self.key[:int(len(self.key)/2)]
         self.d = self.key[int(len(self.key)/2):]
         self.round = 1
@@ -48,14 +50,21 @@ class des:
         return right_text + left_text, self.key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
+        print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
         e_text = expand(right_text) # use the ebox
+        print("expansion test: {}".format(e_text))
         result = xor(self.gen_key(), e_text)
-        result = substitute(result,self.mode) # use the sbox
+        print("xor text: {}".format(result))
+        result = substitute(result, self.mode) # use the sbox
+        print("subbed text: {}".format(result))
         result = shuffle('P', result) # permute text
+        print("Permuted text: {}".format(result))
         result = xor(result, left_text)
+        print("xored with left: {}".format(result))
         self.round += 1
         left_text = right_text
         right_text = result
+        print("Result: {}, {}".format(left_text, right_text))
         return left_text, right_text
 
     def permute1(self): # permute the key
@@ -84,7 +93,7 @@ class des:
 def substitute(inText,mode): # parse the text through the s-box
     n = 6 # number of bytes the input is split into
     split_text = [inText[i:i+n] for i in range(0, len(inText), n)]
-    if mode == "encrypt":
+    if True: #mode == "encrypt":
         s_box = [import_json("s1.json"), import_json("s2.json"), import_json("s3.json"),
                 import_json("s4.json"), import_json("s5.json"), import_json("s6.json"),
                 import_json("s7.json"), import_json("s8.json")]
@@ -142,11 +151,11 @@ def pad_key(key): # pads the key using even parity calculations
             for j in range(0, len(split_key[i])):
                 if split_key[i][j] == "1":
                     bit_count += 1
-                if (bit_count % 2) is 0:
-                    parity = "0"
-                else:
-                    parity = "1"
-                split_key[i] += parity
+            if (bit_count % 2) is 0:
+                parity = "0"
+            else:
+                parity = "1"
+            split_key[i] += parity
         return "".join(split_key)
     else:
         return key # in other cases there is no way of calculating parity
