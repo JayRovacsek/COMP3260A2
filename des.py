@@ -8,6 +8,7 @@ import sys
 
 class des:
     def __init__(self, key, mode): # instantiate store key and set mode
+        self.original_key = key
         key = pad_key(key)
         self.key = key
         self.permute1() # permute key as PC-1
@@ -30,11 +31,13 @@ class des:
         try:
             with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
                 f.write(text + "\n")
-                f.write(self.key)
+                f.write(self.original_key)
                 print("File saved to: {}/Results/encrypt.results".format(os.getcwd()))
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
-        return text, self.key
+        for k in self.subkeys:
+            print(self.subkeys[k])
+        return text, self.original_key
 
     def decrypt(self, text):
         text = shuffle('IP', text)
@@ -46,13 +49,13 @@ class des:
         try:
             with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f:
                 f.write(text + "\n")
-                f.write(self.key)
+                f.write(self.original_key)
                 print("File saved to: {}/Results/decrypt.results".format(os.getcwd()))
         except Exception:
             print("An error occurred: {}".format(traceback.format_exc()))
         for k in self.subkeys:
             print(self.subkeys[k])
-        return text, self.key
+        return text, self.original_key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
         print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
