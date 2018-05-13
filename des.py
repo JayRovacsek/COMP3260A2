@@ -28,9 +28,6 @@ class des:
         text = shuffle('IPinverse', right_text + left_text)
         return text, self.original_key
 
-    def avalanche(self, text, key):
-        return
-
     def decrypt(self, text): # decrypt cipher text
         text = shuffle('IP', text)
         left_text = text[:int(len(text)/2)]
@@ -132,3 +129,68 @@ def pad_key(key): # pads the key using even parity calculations
         return "".join(split_key)
     else:
         return key # in other cases there is no way of calculating parity
+
+def avalanche(text, key):
+    import des1
+    import des2
+    import des3
+    mode = "encrypt" # assert in encryption mode
+    text = shuffle('IP', text) # initial permutation
+    text_perms = permute_text(text) # the list of possible texts
+    key_perms = permute_text(key) # the list of possible keys
+    result = ""
+    k = 1
+    diff_list = [[], [], [], []]
+    for perm in text_perms: # iterate through permutations
+        result += "\nP and P{} under K\n".format(k)
+        k += 1
+        result += "Round  DES0  DES1  DES2  DES3\n"
+        deses = []
+        for i in range(0, 2):
+            deses.append([des(key, mode), des1.des1(key, mode),
+                          des2.des2(key, mode), des3.des3(key, mode)])
+        result += "    0"
+        perm_left = []
+        perm_right = []
+        left_text = []
+        right_text = []
+        for i in range(0, 4):
+            result += "   {}".format(text_diff(text, perm))
+            perm_left.append(perm[:int(len(text)/2)])
+            perm_right.append(perm[int(len(text)/2):])
+            left_text.append(text[:int(len(text)/2)])
+            right_text.append(text[int(len(text)/2):])
+        for i in range(0, 16): # the rounds of encryption
+            result += "\n    {}".format(i + 1)
+            for j in range(0, 4):
+                perm_left[j], perm_right[j] = deses[0][j].round_fun(perm_left[j], perm_right[j])
+                left_text[j], right_text[j] = deses[1][j].round_fun(left_text[j], right_text[j])
+                diff = text_diff(left_text[j] + right_text[j], perm_left[j] + perm_right[j])
+                result += "   {}".format(diff)
+                if i == 15: # if last round
+                    diff_list[j].append(diff)
+    result += "\nAvg    "
+    for j in range(0, 4):
+        add = 0
+        for diff in diff_list[j]:
+            add += diff
+        result += "{}   ".format(add / len(diff_list[j]))
+    return result
+
+def permute_text(text): # return a list of permutations of a given text
+    result = []
+    for i in range(0, len(text)):
+        if text[i] == "1":
+            add = "0"
+        else:
+            add = "1"
+        result.append(text[:i] + add + text[i+1:])
+    return result
+
+def text_diff(text, delta_text):
+    result = 0
+    length = len(text) if len(text) <= len(delta_text) else len(delta_text)
+    for i in range(length):
+        if text[i] != delta_text[i]:
+            result += 1
+    return result
