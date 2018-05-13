@@ -1,9 +1,14 @@
+# application.py - COMP3260A2
+# The main thread of the des program
+#
+# Authors: Jay Rovaksec, Cody Lewis
+# Since: 12-MAY-2018
 import sys
 import traceback
 import os
 import des
 
-def parse_file(file):
+def parse_file(file): # parse the input file
     values = {}
     try:
         with open(file) as f:
@@ -20,31 +25,32 @@ def parse_file(file):
     finally:
         return values
 
-if __name__ == "__main__":
+if __name__ == "__main__": # IO
     if len(sys.argv) is 3:
         args = sys.argv
         del args[0]
-        values = parse_file(args[1])
+        values = parse_file(args[1]) # takes file input (2nd argument)
         if len(values) is not 0:
             if args[0] == '-e' or args[0] == '--encrypt':
                 _des = des.des(values['K'],"encrypt")
                 print("Encrypting using:\nPlaintext P: {}\nKey K: {}".format(values['P'], values['K']))
                 text, key = _des.encrypt(values['P'])
                 print("Ciphertext C: {}".format(text))
-                try:
+                try: # file output
                     with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
-                        f.write("Plaintext P: {}\nKey K: {}\nCiphertext C: {}".format(values['P'], key, text))
+                        f.write("ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}".format(values['P'], key, text))
                     print("The results were saved to: {}/Results/encrypt.results".format(os.getcwd()))
                 except Exception:
                     print("An error occurred: {}".format(traceback.format_exc()))
+
             elif args[0] == '-d' or args[0] == '--decrypt':
                 _des = des.des(values['K'],"decrypt")
                 print("Decrypting using:\nCiphertext C: {}\nKey K: {}".format(values['P'], values['K']))
                 text, key = _des.decrypt(values['P'])
                 print("Plaintext P: {}".format(text))
                 try:
-                    with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f:
-                        f.write("Ciphertext C: {}\nKey K: {}\nPlaintext P: {}".format(values['P'], key, text))
+                    with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f: # file output
+                        f.write("DECRYPTION\nCiphertext C: {}\nKey K: {}\nPlaintext P: {}".format(values['P'], key, text))
                     print("The results were saved to: {}/Results/decrypt.results".format(os.getcwd()))
                 except Exception:
                     print("An error occurred: {}".format(traceback.format_exc()))

@@ -28,7 +28,7 @@ class des:
         text = shuffle('IPinverse', right_text + left_text)
         return text, self.original_key
 
-    def decrypt(self, text):
+    def decrypt(self, text): # decrypt cipher text
         text = shuffle('IP', text)
         left_text = text[:int(len(text)/2)]
         right_text = text[int(len(text)/2):]
@@ -54,12 +54,12 @@ class des:
     def permute1(self): # permute the key
         self.key = shuffle('PC-1', self.key)
 
-    def generate_subkeys(self):
+    def generate_subkeys(self): # create each of thre subkeys
         shift_order = import_json('shift.json')
-        c = self.c
+        c = self.c # the half key blocks
         d = self.d
         for k in range(1,17):
-            shift = shift_order[str(k)]
+            shift = shift_order[str(k)] # shifts the keys
             c_shift, d_shift = "",""
             for i in range(shift, len(c)):
                 c_shift += c[i:i+1]
@@ -71,21 +71,7 @@ class des:
             d = d_shift
             self.subkeys[str(k)] = shuffle('PC-2', c + d)
 
-    def gen_key(self): # shift the key
-        shift_order = import_json('shift.json')
-        shift = shift_order[str(self.round)]
-        c_shift, d_shift = "",""
-        for i in range(shift, len(self.c)):
-            c_shift += self.c[i:i+1]
-            d_shift += self.d[i:i+1]
-        for i in range(0, shift):
-            c_shift += self.c[i:i+1]
-            d_shift += self.d[i:i+1]
-        self.c = c_shift
-        self.d = d_shift
-        return self.permute2()
-
-    def permute2(self):
+    def permute2(self): # permute the shifted half keys
         return shuffle('PC-2', self.c + self.d)
 
 # Text substitution functions
