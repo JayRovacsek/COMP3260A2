@@ -36,9 +36,11 @@ if __name__ == "__main__": # IO
                 print("Encrypting using:\nPlaintext P: {}\nKey K: {}".format(values['P'], values['K']))
                 text, key = _des.encrypt(values['P'])
                 print("Ciphertext C: {}".format(text))
+                avalanche = _des.avalanche(values['P'], values['K'])
+                print("Avalanche:\n{}".format(avalanche))
                 try: # file output
                     with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
-                        f.write("ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}".format(values['P'], key, text))
+                        f.write("ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}\nAvalanche:\n{}".format(values['P'], key, text, avalanche))
                     print("The results were saved to: {}/Results/encrypt.results".format(os.getcwd()))
                 except Exception:
                     print("An error occurred: {}".format(traceback.format_exc()))
