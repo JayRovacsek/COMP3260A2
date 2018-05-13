@@ -1,11 +1,9 @@
+# des.py - COMP3260A2
 # the des function script
+#
+# Authors: Jay Rovaksec, Cody Lewis
 # since: 02-MAY-2018
-# TODO: make code neat, avalanche effect, output, decryption
-# the inputs will already be in binary form
-import os
-import traceback
-import sys
-
+# TODO: make code neat, avalanche effect
 class des:
     def __init__(self, key, mode): # instantiate store key and set mode
         self.original_key = key
@@ -28,15 +26,6 @@ class des:
         for i in range(0, 16):
             left_text, right_text = self.round_fun(left_text, right_text)
         text = shuffle('IPinverse', right_text + left_text)
-        try:
-            with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
-                f.write(text + "\n")
-                f.write(self.original_key)
-                print("File saved to: {}/Results/encrypt.results".format(os.getcwd()))
-        except Exception:
-            print("An error occurred: {}".format(traceback.format_exc()))
-        for k in self.subkeys:
-            print(self.subkeys[k])
         return text, self.original_key
 
     def decrypt(self, text):
@@ -46,39 +35,20 @@ class des:
         for i in range(0, 16):
             left_text, right_text = self.round_fun(left_text, right_text)
         text = shuffle('IPinverse', right_text + left_text)
-        try:
-            with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f:
-                f.write(text + "\n")
-                f.write(self.original_key)
-                print("File saved to: {}/Results/decrypt.results".format(os.getcwd()))
-        except Exception:
-            print("An error occurred: {}".format(traceback.format_exc()))
-        for k in self.subkeys:
-            print(self.subkeys[k])
         return text, self.original_key
 
     def round_fun(self, left_text, right_text): # a round of the des encryption
-        print("Round {}, left: {}, right: {}".format(self.round, left_text, right_text))
         e_text = expand(right_text) # use the ebox
-        print("expansion text: {}".format(e_text))
-        # cur_key = self.subkeys[str(self.round)]
-        # print("round key: ", cur_key)
         if self.mode == "encrypt":
             result = xor(self.subkeys[str(self.round)], e_text)
         else:
             result = xor(self.subkeys[str(17-self.round)], e_text)
-        print("xor text: {}".format(result))
         result = substitute(result, self.mode) # use the sbox
-        print("subbed text: {}".format(result))
         result = shuffle('P', result) # permute text
-        print("Permuted text: {}".format(result))
         result = xor(result, left_text)
-        print("xored with left: {}".format(result))
-
         self.round += 1
         left_text = right_text
         right_text = result
-        print("Result: {}, {}".format(left_text, right_text))
         return left_text, right_text
 
     def permute1(self): # permute the key
