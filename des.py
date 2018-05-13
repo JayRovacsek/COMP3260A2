@@ -3,7 +3,7 @@
 #
 # Authors: Jay Rovaksec, Cody Lewis
 # since: 02-MAY-2018
-# TODO: make code neat, avalanche effect
+# TODO: avalanche effect
 class des:
     def __init__(self, key, mode): # instantiate store key and set mode
         self.original_key = key
@@ -27,6 +27,9 @@ class des:
             left_text, right_text = self.round_fun(left_text, right_text)
         text = shuffle('IPinverse', right_text + left_text)
         return text, self.original_key
+
+    def avalanche(self, text, key):
+        return
 
     def decrypt(self, text): # decrypt cipher text
         text = shuffle('IP', text)
