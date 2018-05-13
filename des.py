@@ -1,7 +1,7 @@
 # des.py - COMP3260A2
 # the des function script
 #
-# Authors: Jay Rovaksec, Cody Lewis
+# Authors: Jay Rovacsek, Cody Lewis
 # since: 02-MAY-2018
 # TODO: avalanche effect
 class des:

@@ -1,5 +1,10 @@
+# des3.py - COMP3260A2
+# One of the variations of the des program
+#
+# Authors: Jay Rovacsek, Cody Lewis
+# Since: 13-MAY-2018
 import des
-class des1(des.des):
+class des3(des.des):
     def round_fun(self, left_text, right_text):
         result = des.expand(right_text)
         result = des.shuffle('inverseEbox', result)

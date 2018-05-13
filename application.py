@@ -1,7 +1,7 @@
 # application.py - COMP3260A2
 # The main thread of the des program
 #
-# Authors: Jay Rovaksec, Cody Lewis
+# Authors: Jay Rovacsek, Cody Lewis
 # Since: 12-MAY-2018
 import sys
 import traceback
