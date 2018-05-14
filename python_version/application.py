@@ -39,9 +39,9 @@ if __name__ == "__main__": # IO
                 avalanche = des.avalanche(values['P'], values['K'])
                 print("Avalanche:\n{}".format(avalanche))
                 try: # file output
-                    with open(os.getcwd()+"/Results/encrypt.results",'w', encoding='utf-8') as f:
+                    with open("encrypt.results", 'w') as f:
                         f.write("ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}\nAvalanche:\n{}".format(values['P'], key, text, avalanche))
-                    print("The results were saved to: {}/Results/encrypt.results".format(os.getcwd()))
+                    print("The results were saved to: encrypt.results")
                 except Exception:
                     print("An error occurred: {}".format(traceback.format_exc()))
 
@@ -51,9 +51,9 @@ if __name__ == "__main__": # IO
                 text, key = _des.decrypt(values['P'])
                 print("Plaintext P: {}".format(text))
                 try:
-                    with open(os.getcwd()+"/Results/decrypt.results",'w', encoding='utf-8') as f: # file output
+                    with open("decrypt.results", 'w') as f: # file output
                         f.write("DECRYPTION\nCiphertext C: {}\nKey K: {}\nPlaintext P: {}".format(values['P'], key, text))
-                    print("The results were saved to: {}/Results/decrypt.results".format(os.getcwd()))
+                    print("The results were saved to: decrypt.results")
                 except Exception:
                     print("An error occurred: {}".format(traceback.format_exc()))
             else:
@@ -63,4 +63,4 @@ if __name__ == "__main__": # IO
         else:
             print("You may have accidentally tried to use a file that did not have a key/text pair")
     else:
-        print("Length of arguments was not sufficient, please refer to the README.md")
+        print("Length of arguments was not sufficient, please refer to the README.txt")

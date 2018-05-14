@@ -95,7 +95,7 @@ def expand(text): # input text into an e-box
 
 def import_json(data_file): # import a json and return a dictionary
     import json
-    with open(data_file, encoding='utf-8') as f:
+    with open(data_file) as f:
         return json.loads(f.read())
 
 def shuffle(filename, text): # shuffle the text in accordance to a json file
