@@ -5,3 +5,4 @@
 *.d
 *.pyc
 /des_system/target/*
+/Alternate/target/*
