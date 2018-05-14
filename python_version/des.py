@@ -144,7 +144,11 @@ def avalanche_perm(text, key, perms, perm_type):
     mode = "encrypt" # assert in encryption mode
     result = ""
     k = 1
-    diff_list = [[], [], [], []]
+    diff_list = []
+    for i in range(0, 4):
+        diff_list.append([]) # list for each form of des
+        for j in range(0, 16):
+            diff_list[i].append([]) # list for each round of des
     for perm in perms: # iterate through permutations
         if perm_type == "text":
             result += "\nP and P{} under K\n".format(k)
@@ -185,14 +189,17 @@ def avalanche_perm(text, key, perms, perm_type):
                 left_text[j], right_text[j] = deses[1][j].round_fun(left_text[j], right_text[j])
                 diff = text_diff(left_text[j] + right_text[j], perm_left[j] + perm_right[j])
                 result += "   {}".format(diff)
-                if i == 15: # if last round
-                    diff_list[j].append(diff)
-    result += "\nAvg    "
-    for j in range(0, 4):
-        add = 0
-        for diff in diff_list[j]:
-            add += diff
-        result += "{}   ".format(add / len(diff_list[j]))
+                diff_list[j][i].append(diff)
+    result += "\nAverage Table\n"
+    result += "Round  DES0  DES1  DES2  DES3\n"
+    for i in range(0, 16):
+        result += "    {}".format(i + 1)
+        for j in range(0, 4):
+            add = 0
+            for diff in diff_list[j][i]:
+                add += diff
+            result += "   {}".format(add / len(diff_list[j][i]))
+        result += "\n"
     return result
 
 def permute_text(text): # return a list of permutations of a given text
