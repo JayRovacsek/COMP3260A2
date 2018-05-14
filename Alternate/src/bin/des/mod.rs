@@ -14,15 +14,15 @@ mod des {
         d: String,
         round: isize,
         mode: char,
-        subkeys: Vec<String>,
+        //        subkeys: Vec<String>,
     }
     // Factory method to generate a Crypto struct from a key and mode
     fn build_crypto(key: String, mode: char) -> Crypto {
-        let key = pad_key(key); // shadows the mutable key
-        let key_halves = half_text(key);
+        let key = pad_key(key.clone()); // shadows the mutable key
+        let key_halves = half_text(key.clone());
         Crypto {
-            og_key: String::from(key),
-            key: String::from(key),
+            og_key: String::from(key.clone()),
+            key: String::from(key.clone()),
             c: String::from(key_halves.0),
             d: String::from(key_halves.1),
             round: 1,
@@ -37,14 +37,14 @@ mod des {
     // Pad the key with the parity bits (even parity)
     fn pad_key(key: String) -> String {
         if key.len() == 56 {
-            let mut key: String = key; // shadow the key into mutable
+            let mut key: String = key.clone(); // shadow the key into mutable
             let mut split_keys: Vec<String> = Vec::new(); // have a vector of the 7 bit blocks of the key
             while key.len() != 7 {
                 split_keys.push(key.split_off(7));
             }
-            split_keys.push(key);
+            split_keys.push(key.clone());
             key.clear(); // reset contents
-            for split_key in split_keys {
+            for mut split_key in split_keys {
                 // the parity calculations
                 let mut i: isize = 0;
                 for bit in split_key.chars() {
@@ -59,7 +59,7 @@ mod des {
                 key.push_str(&String::from(split_key));
             }
         }
-        key
+        key.clone()
     }
     /// Des encryption method
     /// Runs throught the sixteen rounds
@@ -84,13 +84,12 @@ mod des {
     fn permute_text(text: String) -> Vec<String> {
         let mut result: Vec<String> = Vec::new();
         for i in 0..text.len() {
-            let add: String = String::new();
             let add: String = if text[i..i + 1].to_string() == "1" {
                 String::from("0")
             } else {
                 String::from("1")
             };
-            let push: String = text[..i].to_string();
+            let mut push: String = text[..i].to_string();
             push.push_str(&add);
             push.push_str(&text[i + 1..].to_string());
             result.push(push);
