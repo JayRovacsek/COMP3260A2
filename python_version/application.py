@@ -8,6 +8,22 @@ import traceback
 import os
 import des
 
+def test_encryption(plaintext,key):
+    values = {}
+    values['P'] = plaintext
+    values['K'] = key
+    # parse_file('test_files/test_encryption.dat')
+    _des = des.des(values['K'],"encrypt")
+    return _des.encrypt(values['P'])
+
+def test_decryption(plaintext,key):
+    values = {}
+    values['P'] = plaintext
+    values['K'] = key
+    # values = parse_file('test_files/test_decryption.dat')
+    _des = des.des(values['K'],"decrypt")
+    return _des.decrypt(values['P'])
+
 def parse_file(file): # parse the input file
     values = {}
     try:
