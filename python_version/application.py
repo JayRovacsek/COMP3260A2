@@ -13,7 +13,9 @@ def parse_file(file): # parse the input file
     try:
         with open(file) as f:
             for line in f:
-                if 'P' not in values:
+                if 'T' not in values:
+                    values['T'] = line.replace("\n","")
+                elif 'P' not in values:
                     values['P'] = line.replace("\n","")
                 elif 'K' not in values:
                     values['K'] = line.replace("\n","")
@@ -26,12 +28,12 @@ def parse_file(file): # parse the input file
         return values
 
 if __name__ == "__main__": # IO
-    if len(sys.argv) is 3:
+    if len(sys.argv) is 2:
         args = sys.argv
         del args[0]
-        values = parse_file(args[1]) # takes file input (2nd argument)
+        values = parse_file(args[0]) # takes file input (2nd argument)
         if len(values) is not 0:
-            if args[0] == '-e' or args[0] == '--encrypt':
+            if values['T'] == '0':
                 _des = des.des(values['K'],"encrypt")
                 print("Encrypting using:\nPlaintext P: {}\nKey K: {}".format(values['P'], values['K']))
                 text, key = _des.encrypt(values['P'])
@@ -45,7 +47,7 @@ if __name__ == "__main__": # IO
                 except Exception:
                     print("An error occurred: {}".format(traceback.format_exc()))
 
-            elif args[0] == '-d' or args[0] == '--decrypt':
+            elif values['T'] == '1':
                 _des = des.des(values['K'],"decrypt")
                 print("Decrypting using:\nCiphertext C: {}\nKey K: {}".format(values['P'], values['K']))
                 text, key = _des.decrypt(values['P'])
@@ -58,8 +60,8 @@ if __name__ == "__main__": # IO
                     print("An error occurred: {}".format(traceback.format_exc()))
             else:
                 print("An expected encrypt/decrypt flag was not found, please refer to the README.md\n" +
-                "For encryption use the -e/--encrypt flag, eg;\n\"application.py -e testfile\" OR \"application.py --encrypt testfile\"" +
-                "\nFor decryption please use the -d/--decrypt flag eg;\n\"application.py -d testfile\" OR \"application.py --decrypt testfile\"")
+                "For encryption use put '0' at the top of the file " +
+                "\nFor decryption please put '1' at the top of the file")
         else:
             print("You may have accidentally tried to use a file that did not have a key/text pair")
     else:

@@ -12,12 +12,14 @@ mod des;
 fn main() {
     // The main io thread
     let args: Vec<String> = env::args().collect();
-    if args.len() == 3 {
-        let filename = args[2].clone();
-        let values = parse_file(filename);
-        if args[1] == "-e" || args[1] == "--encrypt" {
+    if args.len() == 2 {
+        // can only run with file and operation flags
+        let filename = args[1].clone();
+        let values = parse_file(filename); // get a tuple of the file text and key
+        println!("mode: {}, text: {}, key: {}", values.0, values.1, values.2);
+        if values.0 == "0" {
             // Encryption methods
-        } else if args[1] == "-d" || args[1] == "--decrypt" {
+        } else if values.0 == "1" {
             // Decryption methods
         }
     } else {
@@ -25,19 +27,32 @@ fn main() {
     }
 }
 /// Input file parsing method
-pub fn parse_file(filename: String) -> (String, String) {
+pub fn parse_file(filename: String) -> (String, String, String) {
     let mut f = File::open(filename).expect("Failed to read file");
     let mut contents = String::new();
     f.read_to_string(&mut contents)
         .expect("Something went wrong when reading the file");
-    let (text, key) = {
+    let (mode, text, key) = {
         let bytes = contents.as_bytes();
+        let mut j = 0;
+        let mut k = 0;
+        let mut first = true;
         for (i, &item) in bytes.iter().enumerate() {
             if item == b'\n' {
-                return (contents[..i].to_string(), contents[i + 1..].to_string());
+                if first {
+                    j = i;
+                    first = false;
+                } else {
+                    k = i;
+                    break;
+                }
             }
         }
-        (&contents[..], &contents[..]) // this should never happen, throw exception instead
+        (
+            contents[..j].to_string(),
+            contents[j + 1..k].to_string(),
+            contents[k + 1..].to_string(),
+        )
     };
-    (String::from(text), String::from(key))
+    (String::from(mode), String::from(text), String::from(key))
 }

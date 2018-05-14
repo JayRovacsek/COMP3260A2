@@ -2,9 +2,9 @@ COMP3260A2
 Authors: Jay Rovacsek, Cody Lewis
 
 This program uses python (specifically tested on python 3.6, and 2.7). It may
-be run with the command `python application.py <crypt_flag> <file>` where 
-<crypt_flag> is either `-e`, `--encrypt`, `-d`, or `--decrypt` and 
-<file> is the name of the file containing a line of binary text then a line of
+be run with the command `python application.py <file>` where 
+<file> is the name of the file containing a line containing '0' for encryption
+or '1' for decryption then a line of binary text then a line of
 binary key. The interface for the program is located in application.py, the 
 various deses are in des.py, des1.py, des2.py, and des3.py, the boxes for des
 are located in the .json files.
