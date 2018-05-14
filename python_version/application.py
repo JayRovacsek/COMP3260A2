@@ -28,7 +28,7 @@ def parse_file(file): # parse the input file
         return values
 
 if __name__ == "__main__": # IO
-    if len(sys.argv) is 2:
+    if len(sys.argv) is 3:
         args = sys.argv
         del args[0]
         values = parse_file(args[0]) # takes file input (2nd argument)
@@ -41,9 +41,9 @@ if __name__ == "__main__": # IO
                 avalanche = des.avalanche(values['P'], values['K'])
                 print("Avalanche:\n{}".format(avalanche))
                 try: # file output
-                    with open("encrypt.results", 'w') as f:
+                    with open(args[1], 'w') as f:
                         f.write("ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}\nAvalanche:\n{}".format(values['P'], key, text, avalanche))
-                    print("The results were saved to: encrypt.results")
+                    print("The results were saved to: {}".format(args[1]))
                 except Exception:
                     print("An error occurred: {}".format(traceback.format_exc()))
 
@@ -53,9 +53,9 @@ if __name__ == "__main__": # IO
                 text, key = _des.decrypt(values['P'])
                 print("Plaintext P: {}".format(text))
                 try:
-                    with open("decrypt.results", 'w') as f: # file output
+                    with open(args[1], 'w') as f: # file output
                         f.write("DECRYPTION\nCiphertext C: {}\nKey K: {}\nPlaintext P: {}".format(values['P'], key, text))
-                    print("The results were saved to: decrypt.results")
+                    print("The results were saved to: {}".format(args[1]))
                 except Exception:
                     print("An error occurred: {}".format(traceback.format_exc()))
             else:

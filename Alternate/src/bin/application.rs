@@ -12,9 +12,10 @@ mod des;
 fn main() {
     // The main io thread
     let args: Vec<String> = env::args().collect();
-    if args.len() == 2 {
+    if args.len() == 3 {
         // can only run with file and operation flags
         let filename = args[1].clone();
+        let out_file = args[2].clone();
         let values = parse_file(filename); // get a tuple of the file text and key
         println!("mode: {}, text: {}, key: {}", values.0, values.1, values.2);
         if values.0 == "0" {
@@ -36,14 +37,17 @@ pub fn parse_file(filename: String) -> (String, String, String) {
         let bytes = contents.as_bytes();
         let mut j = 0;
         let mut k = 0;
+        let mut l = 0;
         let mut first = true;
         for (i, &item) in bytes.iter().enumerate() {
             if item == b'\n' {
                 if first {
                     j = i;
                     first = false;
-                } else {
+                } else if k == 0 {
                     k = i;
+                } else {
+                    l = i;
                     break;
                 }
             }
@@ -51,7 +55,7 @@ pub fn parse_file(filename: String) -> (String, String, String) {
         (
             contents[..j].to_string(),
             contents[j + 1..k].to_string(),
-            contents[k + 1..].to_string(),
+            contents[k + 1..l].to_string(),
         )
     };
     (String::from(mode), String::from(text), String::from(key))
