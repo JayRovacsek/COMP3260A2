@@ -51,7 +51,7 @@ mod des {
                 }
                 let parity: char = if (i % 2) == 0 { '0' } else { '1' };
                 split_key.push(parity);
-                key.push(String::from(split_key)); // FIXME
+                key.push_str(&String::from(split_key));
             }
         }
         key
@@ -60,4 +60,34 @@ mod des {
         let sys = build_crypto(key, char::from('e'));
     }
 
+    fn permute_text(text: String) -> Vec<String> {
+        let mut result: Vec<String> = Vec::new();
+        for i in 0..text.len() {
+            let add: String = String::new();
+            let add: String = if text[i..i + 1].to_string() == "1" {
+                String::from("0")
+            } else {
+                String::from("1")
+            };
+            let push: String = text[..i].to_string();
+            push.push_str(&add);
+            push.push_str(&text[i + 1..].to_string());
+            result.push(push);
+        }
+        result
+    }
+    fn text_diff(text: String, delta_text: String) -> isize {
+        let mut result: isize = 0;
+        let length = if text.len() <= delta_text.len() {
+            text.len()
+        } else {
+            delta_text.len()
+        };
+        for i in 0..length {
+            if text[i..i + 1] != delta_text[i..i + 1] {
+                result += 1
+            }
+        }
+        result
+    }
 }
