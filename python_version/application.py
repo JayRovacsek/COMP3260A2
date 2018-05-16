@@ -39,7 +39,7 @@ if __name__ == "__main__": # IO
                 text, key = _des.encrypt(values['P'])
                 print("Ciphertext C: {}".format(text))
                 avalanche = des.avalanche(values['P'], values['K'])
-                print("Avalanche:\n{}".format(avalanche))
+#                print("Avalanche:\n{}".format(avalanche))
                 try: # file output
                     with open(args[1], 'w') as f:
                         f.write("ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}\nAvalanche:\n{}".format(values['P'], key, text, avalanche))

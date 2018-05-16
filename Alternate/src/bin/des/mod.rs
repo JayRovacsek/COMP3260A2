@@ -1,3 +1,12 @@
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+
+use std::fs::File;
+use std::path::Path;
+use std::error::Error;
+use serde_json::{Value, Map};
 /**
  * des/mod.rs - COMP3260A2
  * Module for the des encryption, decryption and avalanche effect
@@ -110,5 +119,12 @@ mod des {
             }
         }
         result
+    }
+    fn parse_json<P: AsRef<Path>>(path: P) -> Result<Map<String, Value>, Box<Error>> {
+        // Open the file
+        let file = File::open(path).expect("Failed to read a file");
+        let u = serde_json::from_reader(file)?;
+        // Return to caller
+        Ok(u)
     }
 }
