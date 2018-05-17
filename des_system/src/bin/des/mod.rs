@@ -115,10 +115,10 @@ mod des {
     fn round(sys: &Crypto, text: (String, String)) -> (String, String) {
         let e_text = expand(text.1.clone());
         let xor_text = if sys.mode == 'e' {
-            xor(sys.subkeys[sys.round].clone(), e_text)
+            xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
-            xor(sys.subkeys[17 - sys.round].clone(), e_text)
-        }
+            xor(sys.subkeys[(17 - sys.round) as usize].clone(), e_text)
+        };
         text.clone()
     }
     fn expand(text: String) -> String {
