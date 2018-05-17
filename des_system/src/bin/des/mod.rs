@@ -1,12 +1,3 @@
-extern crate serde;
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
-
-use std::fs::File;
-use std::path::Path;
-use std::error::Error;
-use serde_json::{Value, Map};
 /**
  * des/mod.rs - COMP3260A2
  * Module for the des encryption, decryption and avalanche effect
@@ -15,6 +6,13 @@ use serde_json::{Value, Map};
  * Since: 12-MAY-2018
  */
 mod des {
+    extern crate serde;
+    extern crate serde_json;
+     
+    use std::fs::File;
+    use std::path::Path;
+    use std::error::Error;
+    use self::serde_json::{Value, Map};
     // Struct for all the data to be stored in the Crypto system
     struct Crypto {
         og_key: String,
@@ -76,6 +74,9 @@ mod des {
     pub fn encrypt(text: String, key: String) {
         let sys = build_crypto(key, char::from('e'));
     }
+    fn round(sys: Crypto, text: String) -> (String, String) {
+        
+    }
     // xor two Strings containing binary text together
     fn xor(this: String, that: String) -> String {
         let mut result: String = String::new();
@@ -126,5 +127,13 @@ mod des {
         let u = serde_json::from_reader(file)?;
         // Return to caller
         Ok(u)
+    }
+    fn shuffle(filename: String, text: String) -> String {
+        let mut result = String::new();
+        let shuffle_map = parse_json(filename).unwrap();
+        for val in shuffle_map.values() {
+            result.push(text[val.as_u64().unwrap() - 1..val.as_u64().unwrap()]); // value does not work currently
+        }
+        result
     }
 }
