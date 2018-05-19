@@ -15,7 +15,6 @@ pub mod des {
     use self::serde_json::{Map, Value};
     // Struct for all the data to be stored in the Crypto system
     struct Crypto {
-        og_key: String,
         key: String,
         c: String,
         d: String,
@@ -29,7 +28,6 @@ pub mod des {
         let key_halves = half_text(shuffle(String::from("../boxes/PC-1.json"), padded_key));
         let subkeys = generate_subkeys(key.clone(), key_halves.clone());
         Crypto {
-            og_key: String::from(key.clone()),
             key: String::from(key.clone()),
             c: String::from(key_halves.0.clone()),
             d: String::from(key_halves.1.clone()),
@@ -100,19 +98,19 @@ pub mod des {
     /// Des encryption method
     /// Runs through the sixteen rounds
     /// returns the cipher text and key
-    pub fn encrypt(text: String, key: String) -> (String, String) {
+    pub fn encrypt(text: String, key: String) -> String {
         let mut sys = build_crypto(key, char::from('e'));
         crypt(&mut sys, text)
     }
     /// Des decryption method
     /// Runs backwards through the sixteen rounds
     /// returns the plaintext and key
-    pub fn decrypt(text: String, key: String) -> (String, String) {
+    pub fn decrypt(text: String, key: String) -> String {
         let mut sys = build_crypto(key, char::from('d'));
         crypt(&mut sys, text)
     }
     // The method for both the decryption and encryption
-    fn crypt(mut sys: &mut Crypto, text: String) -> (String, String) {
+    fn crypt(mut sys: &mut Crypto, text: String) -> String {
         let text = shuffle(String::from("../boxes/IP.json"), text);
         let mut text_halves = half_text(text);
         for i in 0..16 {
@@ -122,7 +120,7 @@ pub mod des {
             String::from("../boxes/IPinverse.json"),
             format!("{}{}", text_halves.1, text_halves.0), // last flip
         );
-        (text, sys.og_key.clone())
+        text
     }
     // A round of the des cipher
     fn round(sys: &mut Crypto, text: (String, String)) -> (String, String) {

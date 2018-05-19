@@ -23,12 +23,12 @@ fn main() {
             // Encryption methods
             println!("Encrypting using:\nPlaintext P: {}\nKey K:{}", values.1, values.2);
             let result = encrypt(values.1, values.2);
-            println!("Ciphertext C: {}", result.0);
+            println!("Ciphertext C: {}", result);
         } else if values.0 == "1" {
             // Decryption methods
             println!("Decrypting using:\nCiphertext C: {}\nKey K:{}", values.1, values.2);
             let result = decrypt(values.1, values.2);
-            println!("Plaintext P: {}", result.0);
+            println!("Plaintext P: {}", result);
         }
     } else {
         println!("Not enough arguments specified, please refer to the README.txt file at the root of the project");
