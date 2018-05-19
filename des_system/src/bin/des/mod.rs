@@ -5,7 +5,7 @@
  * Authors: Jay Rovacsek, Cody Lewis
  * Since: 12-MAY-2018
  */
-mod des {
+pub mod des {
     extern crate serde;
     extern crate serde_json;
 
@@ -25,15 +25,15 @@ mod des {
     }
     // Factory method to generate a Crypto struct from a key and mode
     fn build_crypto(key: String, mode: char) -> Crypto {
-        let key = pad_key(key.clone()); // shadows the mutable key
-        let key_halves = half_text(key.clone());
+        let padded_key = pad_key(key.clone()); // shadows the mutable key
+        let key_halves = half_text(shuffle(String::from("../boxes/PC-1.json"), padded_key));
         let subkeys = generate_subkeys(key.clone(), key_halves.clone());
         Crypto {
             og_key: String::from(key.clone()),
             key: String::from(key.clone()),
             c: String::from(key_halves.0.clone()),
             d: String::from(key_halves.1.clone()),
-            round: 1,
+            round: 0,
             mode: char::from(mode),
             subkeys: subkeys,
         }
@@ -47,25 +47,26 @@ mod des {
         if key.len() == 56 {
             let mut key: String = key.clone(); // shadow the key into mutable
             let mut split_keys: Vec<String> = Vec::new(); // have a vector of the 7 bit blocks of the key
-            while key.len() != 7 {
-                split_keys.push(key.split_off(7));
+            for i in 0..(key.len() / 7) {
+                let index = i * 7;
+                split_keys.push(key[index..index + 7].to_string());
             }
-            split_keys.push(key.clone());
             key.clear(); // reset contents
-            for mut split_key in split_keys {
+            for i in 0..split_keys.len() {
                 // the parity calculations
-                let mut i: isize = 0;
-                for bit in split_key.chars() {
-                    i += match bit {
+                let mut j: isize = 0;
+                for bit in split_keys[i].chars() {
+                    j += match bit {
                         '0' => 0,
                         '1' => 1,
                         _ => 0,
                     }
                 }
-                let parity: char = if (i % 2) == 0 { '0' } else { '1' };
-                split_key.push(parity); // add parity to key
-                key.push_str(&String::from(split_key));
+                let parity: char = if (j % 2) == 0 { '0' } else { '1' };
+                split_keys[i].push(parity); // add parity to key
+                key = format!("{}{}", key, split_keys[i]);
             }
+            return key.clone();
         }
         key.clone()
     }
@@ -73,9 +74,9 @@ mod des {
     fn generate_subkeys(key: String, key_halves: (String, String)) -> Vec<String> {
         let shift_order = parse_json(String::from("../boxes/shift.json")).unwrap();
         let mut subkeys = Vec::new();
-        let c = key_halves.0.clone();
-        let d = key_halves.1.clone();
-        for k in 1..16 {
+        let mut c = key_halves.0.clone();
+        let mut d = key_halves.1.clone();
+        for k in 1..17 {
             let shift = shift_order[&k.to_string()].as_u64().unwrap() as usize;
             let mut c_shift = String::new();
             let mut d_shift = String::new();
@@ -83,15 +84,15 @@ mod des {
                 c_shift.push_str(&c[i..i + 1]);
                 d_shift.push_str(&d[i..i + 1]);
             }
-            for i in shift..c.len() {
+            for i in 0..shift {
                 c_shift.push_str(&c[i..i + 1]);
                 d_shift.push_str(&d[i..i + 1]);
             }
-            let c = c_shift;
-            let d = d_shift;
+            c = c_shift;
+            d = d_shift;
             subkeys.push(shuffle(
                 String::from("../boxes/PC-2.json"),
-                c.clone() + d.clone().as_str(),
+                format!("{}{}", c, d),
             ));
         }
         subkeys
@@ -102,28 +103,28 @@ mod des {
     pub fn encrypt(text: String, key: String) -> (String, String) {
         let mut sys = build_crypto(key, char::from('e'));
         let text = shuffle(String::from("../boxes/IP.json"), text);
-        let text_halves = half_text(text);
-        for i in 0..15 {
-            let text_halves = round(&mut sys, text_halves.clone()); // borrows the Crypto struct
+        let mut text_halves = half_text(text);
+        for i in 0..16 {
+            text_halves = round(&mut sys, text_halves.clone()); // borrows the Crypto struct
         }
         let text = shuffle(
             String::from("../boxes/IPinverse.json"),
-            text_halves.0.clone() + text_halves.1.clone().as_str(),
+            format!("{}{}", text_halves.1, text_halves.0), // last flip
         );
         (text, sys.og_key.clone())
     }
     fn round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
-        let e_text = expand(text.1.clone());
+        let e_text = expand(text.1.clone()); // expand right
         let xor_text = if sys.mode == 'e' {
             xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
             xor(sys.subkeys[(17 - sys.round) as usize].clone(), e_text)
         };
         let sub_text = substitute(xor_text); // substitute
-                                             // permute
-                                             // xor with left
+        let p_text = shuffle(String::from("../boxes/P.json"), sub_text); // permute
+        let end_right = xor(p_text, text.0); // xor with left
         sys.round += 1;
-        text.clone()
+        (text.1, end_right)
     }
     fn expand(text: String) -> String {
         shuffle(String::from("../boxes/ebox.json"), text)
@@ -154,12 +155,12 @@ mod des {
             result
         };
         let mut s_box: Vec<Map<String, Value>> = Vec::new();
-        for i in 1..8 {
+        for i in 1..9 {
             // get the s-boxes
             s_box.push(parse_json(format!("../boxes/s{}.json", i)).unwrap());
         }
         let mut out = String::new();
-        for i in 0..7 {
+        for i in 0..8 {
             // sub the text pieces into the s-boxes
             let mut add = format!(
                 "{:b}",
@@ -215,7 +216,8 @@ mod des {
     fn shuffle(filename: String, text: String) -> String {
         let mut result = String::new();
         let shuffle_map = parse_json(filename).unwrap();
-        for val in shuffle_map.values() {
+        for i in 0..shuffle_map.len() {
+            let val = shuffle_map.get(&format!("{}", i)).unwrap();
             result.push_str(
                 &text[(val.as_u64().unwrap() as usize) - 1..(val.as_u64().unwrap() as usize)],
             );

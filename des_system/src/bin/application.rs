@@ -2,6 +2,7 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 mod des;
+use des::des::encrypt;
 /**
  * application.rs - COMP3260A2
  * The main thread of the des program
@@ -17,9 +18,11 @@ fn main() {
         let filename = args[1].clone();
         let out_file = args[2].clone();
         let values = parse_file(filename); // get a tuple of the file text and key
-        println!("mode: {}, text: {}, key: {}", values.0, values.1, values.2);
         if values.0 == "0" {
             // Encryption methods
+            println!("Encrypting using:\nPlaintext P: {}\nKey K:{}", values.1, values.2);
+            let result = encrypt(values.1, values.2);
+            println!("Ciphertext C: {}", result.0);
         } else if values.0 == "1" {
             // Decryption methods
         }
