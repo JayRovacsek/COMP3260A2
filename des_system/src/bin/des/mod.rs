@@ -100,11 +100,11 @@ mod des {
     /// Runs throught the sixteen rounds
     /// returns the cipher text and key
     pub fn encrypt(text: String, key: String) -> (String, String) {
-        let sys = build_crypto(key, char::from('e'));
+        let mut sys = build_crypto(key, char::from('e'));
         let text = shuffle(String::from("../boxes/IP.json"), text);
         let text_halves = half_text(text);
         for i in 0..15 {
-            let text_halves = round(&sys, text_halves.clone()); // borrows the Crypto struct
+            let text_halves = round(&mut sys, text_halves.clone()); // borrows the Crypto struct
         }
         let text = shuffle(
             String::from("../boxes/IPinverse.json"),
@@ -112,13 +112,17 @@ mod des {
         );
         (text, sys.og_key.clone())
     }
-    fn round(sys: &Crypto, text: (String, String)) -> (String, String) {
+    fn round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
         let e_text = expand(text.1.clone());
         let xor_text = if sys.mode == 'e' {
             xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
             xor(sys.subkeys[(17 - sys.round) as usize].clone(), e_text)
         };
+        let sub_text = substitute(xor_text); // substitute
+                                             // permute
+                                             // xor with left
+        sys.round += 1;
         text.clone()
     }
     fn expand(text: String) -> String {
@@ -136,6 +140,37 @@ mod des {
             }
         }
         result
+    }
+    // Pass text through s-boxes
+    fn substitute(text: String) -> String {
+        let n: usize = 6;
+        let split_text = {
+            let mut result: Vec<String> = Vec::new();
+            for i in 0..(text.len() / n) {
+                // split the text into it's blocks
+                let index = i * n;
+                result.push(text[index..index + 6].to_string());
+            }
+            result
+        };
+        let mut s_box: Vec<Map<String, Value>> = Vec::new();
+        for i in 1..8 {
+            // get the s-boxes
+            s_box.push(parse_json(format!("../boxes/s{}.json", i)).unwrap());
+        }
+        let mut out = String::new();
+        for i in 0..7 {
+            // sub the text pieces into the s-boxes
+            let mut add = format!(
+                "{:b}",
+                s_box[i].get(&split_text[i]).unwrap().as_u64().unwrap()
+            );
+            while add.len() < 4 {
+                add = format!("{}{}", "0", add);
+            }
+            out = format!("{}{}", out, add);
+        }
+        out
     }
     // Take a binary text String and return a vector of all of it's permutations
     fn permute_text(text: String) -> Vec<String> {

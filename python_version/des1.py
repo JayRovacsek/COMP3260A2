@@ -11,7 +11,7 @@ class des1(des.des):
             result = des.xor(self.subkeys[str(self.round)], result)
         else:
             result = des.xor(self.subkeys[str(17 - self.round)], result)
-        result = des.substitute(result, self.mode)
+        result = des.substitute(result)
         result = des.xor(result, left_text)
         self.round += 1
         return right_text, result

@@ -42,7 +42,7 @@ class des:
             result = xor(self.subkeys[str(self.round)], e_text)
         else:
             result = xor(self.subkeys[str(17-self.round)], e_text)
-        result = substitute(result, self.mode) # use the sbox
+        result = substitute(result) # use the sbox
         result = shuffle('P', result) # permute text
         result = xor(result, left_text)
         self.round += 1
@@ -74,7 +74,7 @@ class des:
         return shuffle('PC-2', self.c + self.d)
 
 # Text substitution functions
-def substitute(inText,mode): # parse the text through the s-box
+def substitute(inText): # parse the text through the s-box
     n = 6 # number of bytes the input is split into
     split_text = [inText[i:i+n] for i in range(0, len(inText), n)]
     s_box = [import_json("s1.json"), import_json("s2.json"), import_json("s3.json"),
