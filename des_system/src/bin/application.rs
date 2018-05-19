@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::prelude::*;
 mod des;
 use des::des::encrypt;
+use des::des::decrypt;
 /**
  * application.rs - COMP3260A2
  * The main thread of the des program
@@ -25,6 +26,9 @@ fn main() {
             println!("Ciphertext C: {}", result.0);
         } else if values.0 == "1" {
             // Decryption methods
+            println!("Decrypting using:\nCiphertext C: {}\nKey K:{}", values.1, values.2);
+            let result = decrypt(values.1, values.2);
+            println!("Plaintext P: {}", result.0);
         }
     } else {
         println!("Not enough arguments specified, please refer to the README.txt file at the root of the project");

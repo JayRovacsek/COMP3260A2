@@ -98,10 +98,21 @@ pub mod des {
         subkeys
     }
     /// Des encryption method
-    /// Runs throught the sixteen rounds
+    /// Runs through the sixteen rounds
     /// returns the cipher text and key
     pub fn encrypt(text: String, key: String) -> (String, String) {
         let mut sys = build_crypto(key, char::from('e'));
+        crypt(&mut sys, text)
+    }
+    /// Des decryption method
+    /// Runs backwards through the sixteen rounds
+    /// returns the plaintext and key
+    pub fn decrypt(text: String, key: String) -> (String, String) {
+        let mut sys = build_crypto(key, char::from('d'));
+        crypt(&mut sys, text)
+    }
+    // The method for both the decryption and encryption
+    fn crypt(mut sys: &mut Crypto, text: String) -> (String, String) {
         let text = shuffle(String::from("../boxes/IP.json"), text);
         let mut text_halves = half_text(text);
         for i in 0..16 {
@@ -113,12 +124,13 @@ pub mod des {
         );
         (text, sys.og_key.clone())
     }
+    // A round of the des cipher
     fn round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
         let e_text = expand(text.1.clone()); // expand right
         let xor_text = if sys.mode == 'e' {
             xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
-            xor(sys.subkeys[(17 - sys.round) as usize].clone(), e_text)
+            xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
         };
         let sub_text = substitute(xor_text); // substitute
         let p_text = shuffle(String::from("../boxes/P.json"), sub_text); // permute
@@ -126,6 +138,7 @@ pub mod des {
         sys.round += 1;
         (text.1, end_right)
     }
+    // Expand the input text in accordance to the des ebox
     fn expand(text: String) -> String {
         shuffle(String::from("../boxes/ebox.json"), text)
     }
