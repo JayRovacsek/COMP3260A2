@@ -95,6 +95,25 @@ pub mod des {
         }
         subkeys
     }
+    /// Avalanche analysis method,
+    /// Creates a list of key and string permutations and
+    /// returns the average number of bits changed at each permutation
+    pub fn avalanche(text: String, key: String, mode: String) -> String {
+        let mut sys = build_crypto(key, char::from(mode));
+        let mut text_perms = permute_text(text);
+        let mut key_perms = permute_text(text);
+        let mut text_result: String = avalanche_perm();
+        let key_result: &str = avalanche_perm().to_string();
+        result.push_str(key_results)
+    }
+    /// Avalanche permutation method
+    /// Iterates over a Vec<String> and returns a String
+    /// of resulting average of modified bits over the range of permutations
+    pub fn avalanche_perm(text: String, key: String, perms: Vec<String>, perm_type: String) -> String {
+        for p in perms {
+            
+        }
+    }
     /// Des encryption method
     /// Runs through the sixteen rounds
     /// returns the cipher text and key
@@ -219,9 +238,9 @@ pub mod des {
     fn parse_json<P: AsRef<Path>>(path: P) -> Result<Map<String, Value>, Box<Error>> {
         // Open the file
         let file = File::open(path).expect("Failed to read a file");
-        let u = serde_json::from_reader(file)?;
+        let json = serde_json::from_reader(file)?;
         // Return to caller
-        Ok(u)
+        Ok(json)
     }
     // Shuffle the text based on a json file input
     fn shuffle(filename: String, text: String) -> String {
