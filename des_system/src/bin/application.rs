@@ -26,8 +26,8 @@ fn main() {
                 values.1, values.2
             );
             let result = encrypt(values.1.clone(), values.2.clone());
-            println!("Ciphertext C: {}\nFile written to: {}", result, out_file);
-            write_results(out_file, values.1, values.2, result, values.0.clone())
+            println!("Ciphertext C: {}\nFile written to: {}", result.1, out_file);
+            write_results(out_file, values.1, values.2, result.0, values.0.clone(),result.1)
                 .expect("Failed to write file");
         } else if values.0 == "1" {
             // Decryption methods
@@ -37,7 +37,7 @@ fn main() {
             );
             let result = decrypt(values.1.clone(), values.2.clone());
             println!("Plaintext P: {}\nFile written to: {}", result, out_file);
-            write_results(out_file, values.1, values.2, result, values.0.clone())
+            write_results(out_file, values.1, values.2, result, values.0.clone(),String::new())
                 .expect("Failed to write file");
         }
     } else {
@@ -51,13 +51,14 @@ pub fn write_results(
     key: String,
     ciphertext: String,
     mode: String,
+    avalanche: String,
 ) -> std::io::Result<()> {
     let mut f = File::create(filename)?;
     if mode == "0" {
         write!(
             f,
-            "ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}",
-            plaintext, key, ciphertext
+            "ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}\nAvalanche: {}",
+            plaintext, key, ciphertext, avalanche
         )?;
         f.sync_data()?;
     } else {

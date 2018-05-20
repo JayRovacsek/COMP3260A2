@@ -199,16 +199,16 @@ pub mod des {
     /// Des encryption method
     /// Runs through the sixteen rounds
     /// returns the cipher text and key
-    pub fn encrypt(text: String, key: String) -> String {
-        let mut sys = build_crypto(key, char::from('e'));
-        crypt(&mut sys, text)
+    pub fn encrypt(text: String, key: String) -> (String, String) {
+        let mut sys = build_crypto(key.clone(), char::from('e'));
+        return(crypt(&mut sys, text.clone()),avalanche(text, key))
     }
     /// Des decryption method
     /// Runs backwards through the sixteen rounds
     /// returns the plaintext and key
     pub fn decrypt(text: String, key: String) -> String {
-        let mut sys = build_crypto(key, char::from('d'));
-        crypt(&mut sys, text)
+        let mut sys = build_crypto(key.clone(), char::from('d'));
+        return(crypt(&mut sys, text.clone()))
     }
     // The method for both the decryption and encryption
     fn crypt(mut sys: &mut Crypto, text: String) -> String {
