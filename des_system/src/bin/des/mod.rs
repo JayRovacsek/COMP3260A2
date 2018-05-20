@@ -117,7 +117,7 @@ pub mod des {
     ) -> String {
         let mode = char::from('e');
         let mut result = String::new();
-        let mut diff_list = Vec::new();
+        let mut diff_list = Vec::new(); // list the difference between texts in avalanche
         for i in 0..4 {
             let mut temp = Vec::new();
             for j in 0..16 {
@@ -132,6 +132,7 @@ pub mod des {
             } else {
                 format!("{}\nP under K and K{}\n", result, perm_num)
             };
+            result = format!("{}Round  DES0  DES1  DES2  DES3\n", result);
             let mut des = Vec::new();
             let j = if perm_type == "text" { 2 } else { 1 };
             for k in 0..j {
@@ -172,9 +173,28 @@ pub mod des {
             }
             for i in 0..16 {
                 result = format!("{}\n    {}", result, i + 1);
+                let round_text = round(
+                    &mut des[0][0],
+                    (perm_left[0].clone(), perm_right[0].clone()),
+                );
+                perm_left[0] = round_text.0;
+                perm_right[0] = round_text.1;
+                let round_text = round(
+                    &mut des[1][0],
+                    (left_text[0].clone(), right_text[0].clone()),
+                );
+                left_text[0] = round_text.0;
+                right_text[0] = round_text.1;
+                let diff = text_diff(
+                    format!("{}{}", left_text[0], right_text[0]),
+                    format!("{}{}", perm_left[0], perm_right[0]),
+                );
+                result = format!("{}   {}", result, diff);
+                // unroll the loop for the other 3 deses (same operationsish as what is from here
+                // up to the for i loop)
             }
         }
-        text
+        result
     }
     /// Des encryption method
     /// Runs through the sixteen rounds
@@ -206,7 +226,8 @@ pub mod des {
     // A round of the des cipher
     fn round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
         let e_text = expand(text.1.clone()); // expand right
-        let xor_text = if sys.mode == 'e' { // xor with key
+        let xor_text = if sys.mode == 'e' {
+            // xor with key
             xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
             xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
@@ -220,7 +241,8 @@ pub mod des {
     // Round function for des1
     fn des1_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
         let e_text = expand(text.1.clone()); // expand right
-        let xor_text = if sys.mode == 'e' { // xor with key
+        let xor_text = if sys.mode == 'e' {
+            // xor with key
             xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
             xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
@@ -233,7 +255,8 @@ pub mod des {
     // round function for des2
     fn des2_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
         let e_text = expand(text.1.clone()); // expand right
-        let xor_text = if sys.mode == 'e' { // xor with key
+        let xor_text = if sys.mode == 'e' {
+            // xor with key
             xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
             xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
@@ -247,7 +270,8 @@ pub mod des {
     // round function for des3
     fn des3_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
         let e_text = expand(text.1.clone()); // expand right
-        let xor_text = if sys.mode == 'e' { // xor with key
+        let xor_text = if sys.mode == 'e' {
+            // xor with key
             xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
             xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
@@ -255,7 +279,7 @@ pub mod des {
         let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), xor_text);
         let end_right = xor(einverse_text, text.0); // xor with left
         sys.round += 1;
-        (text.1, end_right)       
+        (text.1, end_right)
     }
     // Expand the input text in accordance to the des ebox
     fn expand(text: String) -> String {
