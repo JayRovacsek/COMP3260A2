@@ -161,7 +161,7 @@ pub mod des {
                     half_text(text.clone())
                 };
                 result = format!(
-                    "{}\t{}",
+                    "{}\t\t{}",
                     result,
                     text_diff(text.clone(), format!("{}{}", p_text.0, p_text.1))
                 );
