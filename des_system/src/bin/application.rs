@@ -2,8 +2,8 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 mod des;
-use des::des::encrypt;
 use des::des::decrypt;
+use des::des::encrypt;
 /**
  * application.rs - COMP3260A2
  * The main thread of the des program
@@ -27,8 +27,14 @@ fn main() {
             );
             let result = encrypt(values.1.clone(), values.2.clone());
             println!("Ciphertext C: {}\nFile written to: {}", result.1, out_file);
-            write_results(out_file, values.1, values.2, result.0, values.0.clone(),result.1)
-                .expect("Failed to write file");
+            write_results(
+                out_file,
+                values.1,
+                values.2,
+                result.0,
+                values.0.clone(),
+                result.1,
+            ).expect("Failed to write file");
         } else if values.0 == "1" {
             // Decryption methods
             println!(
@@ -37,8 +43,14 @@ fn main() {
             );
             let result = decrypt(values.1.clone(), values.2.clone());
             println!("Plaintext P: {}\nFile written to: {}", result, out_file);
-            write_results(out_file, values.1, values.2, result, values.0.clone(),String::new())
-                .expect("Failed to write file");
+            write_results(
+                out_file,
+                values.1,
+                values.2,
+                result,
+                values.0.clone(),
+                String::new(),
+            ).expect("Failed to write file");
         }
     } else {
         println!("Not enough arguments specified, please refer to the README.txt file at the root of the project");

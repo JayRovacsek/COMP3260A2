@@ -9,10 +9,10 @@ pub mod des {
     extern crate serde;
     extern crate serde_json;
 
+    use self::serde_json::{Map, Value};
+    use std::error::Error;
     use std::fs::File;
     use std::path::Path;
-    use std::error::Error;
-    use self::serde_json::{Map, Value};
     // Struct for all the data to be stored in the Crypto system
     struct Crypto {
         key: String,
@@ -104,7 +104,7 @@ pub mod des {
         let text_result: String =
             avalanche_perm(text.clone(), key.clone(), text_perms, String::from("text"));
         let key_result: String = avalanche_perm(text, key, key_perms, String::from("key"));
-        format!("Avalanche:\n{}\n{}", text_result, key_result)
+        format!("{}\n{}", text_result, key_result)
     }
     /// Avalanche permutation method
     /// Iterates over a Vec<String> and returns a String
@@ -132,7 +132,7 @@ pub mod des {
             } else {
                 format!("{}\nP under K and K{}\n", result, perm_num)
             };
-            result = format!("{}Round  DES0  DES1  DES2  DES3\n", result);
+            result = format!("{}Round\tDES0\tDES1\tDES2\tDES3\n", result);
             let mut des = Vec::new();
             let j = if perm_type == "text" { 2 } else { 1 };
             for k in 0..j {
@@ -149,7 +149,7 @@ pub mod des {
                 }
                 des.push(temp);
             }
-            result = format!("{}    0", result);
+            // result = format!("{}", result);
             let mut perm_left: Vec<String> = Vec::new();
             let mut perm_right: Vec<String> = Vec::new();
             let mut left_text: Vec<String> = Vec::new();
@@ -161,7 +161,7 @@ pub mod des {
                     half_text(text.clone())
                 };
                 result = format!(
-                    "{}   {}",
+                    "{}\t{}",
                     result,
                     text_diff(text.clone(), format!("{}{}", p_text.0, p_text.1))
                 );
@@ -172,7 +172,7 @@ pub mod des {
                 right_text.push(halved_text.1);
             }
             for i in 0..16 {
-                result = format!("{}\n    {}", result, i + 1);
+                result = format!("{}\n{}", result, i + 1);
                 let round_text = round(
                     &mut des[0][0],
                     (perm_left[0].clone(), perm_right[0].clone()),
@@ -189,10 +189,11 @@ pub mod des {
                     format!("{}{}", left_text[0], right_text[0]),
                     format!("{}{}", perm_left[0], perm_right[0]),
                 );
-                result = format!("{}   {}", result, diff);
+                result = format!("{}   \t{}", result, diff);
                 // unroll the loop for the other 3 deses (same operationsish as what is from here
                 // up to the for i loop)
             }
+            perm_num += 1;
         }
         result
     }
@@ -201,14 +202,14 @@ pub mod des {
     /// returns the cipher text and key
     pub fn encrypt(text: String, key: String) -> (String, String) {
         let mut sys = build_crypto(key.clone(), char::from('e'));
-        return(crypt(&mut sys, text.clone()),avalanche(text, key))
+        return (crypt(&mut sys, text.clone()), avalanche(text, key));
     }
     /// Des decryption method
     /// Runs backwards through the sixteen rounds
     /// returns the plaintext and key
     pub fn decrypt(text: String, key: String) -> String {
         let mut sys = build_crypto(key.clone(), char::from('d'));
-        return(crypt(&mut sys, text.clone()))
+        return (crypt(&mut sys, text.clone()));
     }
     // The method for both the decryption and encryption
     fn crypt(mut sys: &mut Crypto, text: String) -> String {
