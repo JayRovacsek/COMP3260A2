@@ -15,9 +15,6 @@ pub mod des {
     use std::path::Path;
     // Struct for all the data to be stored in the Crypto system
     struct Crypto {
-        key: String,
-        c: String,
-        d: String,
         round: isize,
         mode: char,
         subkeys: Vec<String>,
@@ -26,11 +23,8 @@ pub mod des {
     fn build_crypto(key: String, mode: char) -> Crypto {
         let padded_key = pad_key(key.clone()); // shadows the mutable key
         let key_halves = half_text(shuffle(String::from("../boxes/PC-1.json"), padded_key));
-        let subkeys = generate_subkeys(key.clone(), key_halves.clone());
+        let subkeys = generate_subkeys(key_halves.clone());
         Crypto {
-            key: String::from(key.clone()),
-            c: String::from(key_halves.0.clone()),
-            d: String::from(key_halves.1.clone()),
             round: 0,
             mode: char::from(mode),
             subkeys: subkeys,
@@ -69,7 +63,7 @@ pub mod des {
         key.clone()
     }
     // Generate the sixteen subkeys for each of the rounds
-    fn generate_subkeys(key: String, key_halves: (String, String)) -> Vec<String> {
+    fn generate_subkeys(key_halves: (String, String)) -> Vec<String> {
         let shift_order = parse_json(String::from("../boxes/shift.json")).unwrap();
         let mut subkeys = Vec::new();
         let mut c = key_halves.0.clone();
@@ -118,9 +112,9 @@ pub mod des {
         let mode = char::from('e');
         let mut result = String::new();
         let mut diff_list = Vec::new(); // list the difference between texts in avalanche
-        for i in 0..4 {
+        for _i in 0..4 {
             let mut temp = Vec::new();
-            for j in 0..16 {
+            for _j in 0..16 {
                 temp.push(Vec::<isize>::new());
             }
             diff_list.push(temp);
@@ -135,16 +129,16 @@ pub mod des {
             result = format!("{}Round\tDES0\tDES1\tDES2\tDES3\n", result);
             let mut des = Vec::new();
             let j = if perm_type == "text" { 2 } else { 1 };
-            for k in 0..j {
+            for _k in 0..j {
                 let mut temp: Vec<Crypto> = Vec::new();
-                for i in 0..4 {
+                for _i in 0..4 {
                     temp.push(build_crypto(key.clone(), mode.clone()));
                 }
                 des.push(temp);
             }
             if perm_type == "key" {
                 let mut temp: Vec<Crypto> = Vec::new();
-                for i in 0..4 {
+                for _i in 0..4 {
                     temp.push(build_crypto(perm.clone(), mode.clone()));
                 }
                 des.push(temp);
@@ -155,7 +149,7 @@ pub mod des {
             let mut left_text: Vec<String> = Vec::new();
             let mut right_text: Vec<String> = Vec::new();
             result = format!("{}{}", result, 0);
-            for i in 0..4 {
+            for _i in 0..4 {
                 let p_text = if perm_type == "text" {
                     half_text(perm.clone())
                 } else {
@@ -229,13 +223,13 @@ pub mod des {
     /// returns the plaintext and key
     pub fn decrypt(text: String, key: String) -> String {
         let mut sys = build_crypto(key.clone(), char::from('d'));
-        return (crypt(&mut sys, text.clone()));
+        crypt(&mut sys, text.clone())
     }
     // The method for both the decryption and encryption
     fn crypt(mut sys: &mut Crypto, text: String) -> String {
         let text = shuffle(String::from("../boxes/IP.json"), text);
         let mut text_halves = half_text(text);
-        for i in 0..16 {
+        for _i in 0..16 {
             text_halves = round(&mut sys, text_halves.clone()); // borrows the Crypto struct
         }
         let text = shuffle(
