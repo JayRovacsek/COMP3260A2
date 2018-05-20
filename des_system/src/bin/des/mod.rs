@@ -154,6 +154,7 @@ pub mod des {
             let mut perm_right: Vec<String> = Vec::new();
             let mut left_text: Vec<String> = Vec::new();
             let mut right_text: Vec<String> = Vec::new();
+            result = format!("{}{}", result, 0);
             for i in 0..4 {
                 let p_text = if perm_type == "text" {
                     half_text(perm.clone())
@@ -161,7 +162,7 @@ pub mod des {
                     half_text(text.clone())
                 };
                 result = format!(
-                    "{}\t\t{}",
+                    "{}       {}",
                     result,
                     text_diff(text.clone(), format!("{}{}", p_text.0, p_text.1))
                 );
@@ -171,27 +172,33 @@ pub mod des {
                 left_text.push(halved_text.0);
                 right_text.push(halved_text.1);
             }
+            let mut round_funs: Vec<&Fn(&mut Crypto, (String, String)) -> (String, String)> = Vec::new();
+            // The different round functions placed in a vector for iteration
+            round_funs.push(&round);
+            round_funs.push(&des1_round);
+            round_funs.push(&des2_round);
+            round_funs.push(&des3_round);
             for i in 0..16 {
                 result = format!("{}\n{}", result, i + 1);
-                let round_text = round(
-                    &mut des[0][0],
-                    (perm_left[0].clone(), perm_right[0].clone()),
-                );
-                perm_left[0] = round_text.0;
-                perm_right[0] = round_text.1;
-                let round_text = round(
-                    &mut des[1][0],
-                    (left_text[0].clone(), right_text[0].clone()),
-                );
-                left_text[0] = round_text.0;
-                right_text[0] = round_text.1;
-                let diff = text_diff(
-                    format!("{}{}", left_text[0], right_text[0]),
-                    format!("{}{}", perm_left[0], perm_right[0]),
-                );
-                result = format!("{}   \t{}", result, diff);
-                // unroll the loop for the other 3 deses (same operationsish as what is from here
-                // up to the for i loop)
+                for j in 0..4 {
+                    let round_text = round_funs[j](
+                        &mut des[0][j],
+                        (perm_left[j].clone(), perm_right[j].clone()),
+                    );
+                    perm_left[j] = round_text.0;
+                    perm_right[j] = round_text.1;
+                    let round_text = round_funs[j](
+                        &mut des[1][j],
+                        (left_text[j].clone(), right_text[j].clone()),
+                    );
+                    left_text[j] = round_text.0;
+                    right_text[j] = round_text.1;
+                    let diff = text_diff(
+                        format!("{}{}", left_text[j], right_text[j]),
+                        format!("{}{}", perm_left[j], perm_right[j]),
+                    );
+                    result = format!("{}   \t{}", result, diff);
+                }
             }
             perm_num += 1;
         }
