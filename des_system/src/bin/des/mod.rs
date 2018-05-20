@@ -100,7 +100,7 @@ pub mod des {
     /// returns the average number of bits changed at each permutation
     pub fn avalanche(text: String, key: String) -> String {
         let text_perms = permute_text(text.clone());
-        let key_perms = permute_text(text.clone());
+        let key_perms = permute_text(key.clone());
         let text_result: String =
             avalanche_perm(text.clone(), key.clone(), text_perms, String::from("text"));
         let key_result: String = avalanche_perm(text, key, key_perms, String::from("key"));
@@ -109,7 +109,7 @@ pub mod des {
     /// Avalanche permutation method
     /// Iterates over a Vec<String> and returns a String
     /// of resulting average of modified bits over the range of permutations
-    pub fn avalanche_perm(
+    fn avalanche_perm(
         text: String,
         key: String,
         perms: Vec<String>,
@@ -162,7 +162,7 @@ pub mod des {
                     half_text(text.clone())
                 };
                 result = format!(
-                    "{}       {}",
+                    "{}   \t{}",
                     result,
                     text_diff(text.clone(), format!("{}{}", p_text.0, p_text.1))
                 );
@@ -197,19 +197,32 @@ pub mod des {
                         format!("{}{}", left_text[j], right_text[j]),
                         format!("{}{}", perm_left[j], perm_right[j]),
                     );
+                    diff_list[j][i].push(diff);
                     result = format!("{}   \t{}", result, diff);
                 }
             }
             perm_num += 1;
+        }
+        result = format!("{}\nAverage Table:\n", result);
+        result = format!("{}Round\tDES0\tDES1\tDES2\tDES3", result);
+        for i in 0..16 {
+            result = format!("{}\n{}", result, i + 1);
+            for j in 0..4 {
+                let mut add: isize = 0;
+                for diff in diff_list[j][i].iter() {
+                    add += diff;
+                }
+                result = format!("{}   \t{}", result, (add / (diff_list[j][i].len() as isize)));
+            }
         }
         result
     }
     /// Des encryption method
     /// Runs through the sixteen rounds
     /// returns the cipher text and key
-    pub fn encrypt(text: String, key: String) -> (String, String) {
+    pub fn encrypt(text: String, key: String) -> String {
         let mut sys = build_crypto(key.clone(), char::from('e'));
-        return (crypt(&mut sys, text.clone()), avalanche(text, key));
+        crypt(&mut sys, text.clone())
     }
     /// Des decryption method
     /// Runs backwards through the sixteen rounds

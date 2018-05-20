@@ -4,6 +4,7 @@ use std::io::prelude::*;
 mod des;
 use des::des::decrypt;
 use des::des::encrypt;
+use des::des::avalanche;
 /**
  * application.rs - COMP3260A2
  * The main thread of the des program
@@ -25,7 +26,7 @@ fn main() {
                 "Encrypting using:\nPlaintext P: {}\nKey K:{}",
                 values.1, values.2
             );
-            let result = encrypt(values.1.clone(), values.2.clone());
+            let result = (encrypt(values.1.clone(), values.2.clone()), avalanche(values.1.clone(), values.2.clone()));
             println!("Ciphertext C: {}\nFile written to: {}", result.1, out_file);
             write_results(
                 out_file,
