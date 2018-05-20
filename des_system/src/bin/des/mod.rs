@@ -101,7 +101,8 @@ pub mod des {
     pub fn avalanche(text: String, key: String) -> String {
         let text_perms = permute_text(text.clone());
         let key_perms = permute_text(text.clone());
-        let text_result: String = avalanche_perm(text.clone(), key.clone(), text_perms, String::from("text"));
+        let text_result: String =
+            avalanche_perm(text.clone(), key.clone(), text_perms, String::from("text"));
         let key_result: String = avalanche_perm(text, key, key_perms, String::from("key"));
         format!("Avalanche:\n{}\n{}", text_result, key_result)
     }
@@ -127,16 +128,12 @@ pub mod des {
         let mut perm_num: usize = 1;
         for perm in perms {
             result = if perm_type == "text" {
-                    format!("{}\nP and P{} under K\n", result, perm_num)
+                format!("{}\nP and P{} under K\n", result, perm_num)
             } else {
                 format!("{}\nP under K and K{}\n", result, perm_num)
             };
             let mut des = Vec::new();
-            let j = if perm_type == "text" {
-                2
-            } else {
-                1
-            };
+            let j = if perm_type == "text" { 2 } else { 1 };
             for k in 0..j {
                 let mut temp: Vec<Crypto> = Vec::new();
                 for i in 0..4 {
@@ -162,7 +159,11 @@ pub mod des {
                 } else {
                     half_text(text.clone())
                 };
-                result = format!("{}   {}", result, text_diff(text.clone(), format!("{}{}", p_text.0, p_text.1)));
+                result = format!(
+                    "{}   {}",
+                    result,
+                    text_diff(text.clone(), format!("{}{}", p_text.0, p_text.1))
+                );
                 perm_left.push(p_text.0);
                 perm_right.push(p_text.1);
                 let halved_text = half_text(text.clone());
@@ -172,7 +173,6 @@ pub mod des {
             for i in 0..16 {
                 result = format!("{}\n    {}", result, i + 1);
             }
-
         }
         text
     }
@@ -206,7 +206,7 @@ pub mod des {
     // A round of the des cipher
     fn round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
         let e_text = expand(text.1.clone()); // expand right
-        let xor_text = if sys.mode == 'e' {
+        let xor_text = if sys.mode == 'e' { // xor with key
             xor(sys.subkeys[sys.round as usize].clone(), e_text)
         } else {
             xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
@@ -216,6 +216,46 @@ pub mod des {
         let end_right = xor(p_text, text.0); // xor with left
         sys.round += 1;
         (text.1, end_right)
+    }
+    // Round function for des1
+    fn des1_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
+        let e_text = expand(text.1.clone()); // expand right
+        let xor_text = if sys.mode == 'e' { // xor with key
+            xor(sys.subkeys[sys.round as usize].clone(), e_text)
+        } else {
+            xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
+        };
+        let sub_text = substitute(xor_text); // substitute
+        let end_right = xor(sub_text, text.0); // xor with left
+        sys.round += 1;
+        (text.1, end_right)
+    }
+    // round function for des2
+    fn des2_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
+        let e_text = expand(text.1.clone()); // expand right
+        let xor_text = if sys.mode == 'e' { // xor with key
+            xor(sys.subkeys[sys.round as usize].clone(), e_text)
+        } else {
+            xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
+        };
+        let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), xor_text);
+        let p_text = shuffle(String::from("../boxes/P.json"), einverse_text); // permute
+        let end_right = xor(p_text, text.0); // xor with left
+        sys.round += 1;
+        (text.1, end_right)
+    }
+    // round function for des3
+    fn des3_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
+        let e_text = expand(text.1.clone()); // expand right
+        let xor_text = if sys.mode == 'e' { // xor with key
+            xor(sys.subkeys[sys.round as usize].clone(), e_text)
+        } else {
+            xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
+        };
+        let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), xor_text);
+        let end_right = xor(einverse_text, text.0); // xor with left
+        sys.round += 1;
+        (text.1, end_right)       
     }
     // Expand the input text in accordance to the des ebox
     fn expand(text: String) -> String {
