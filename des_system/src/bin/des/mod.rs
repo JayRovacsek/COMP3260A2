@@ -98,21 +98,83 @@ pub mod des {
     /// Avalanche analysis method,
     /// Creates a list of key and string permutations and
     /// returns the average number of bits changed at each permutation
-    pub fn avalanche(text: String, key: String, mode: String) -> String {
-        let mut sys = build_crypto(key, char::from(mode));
-        let mut text_perms = permute_text(text);
-        let mut key_perms = permute_text(text);
-        let mut text_result: String = avalanche_perm();
-        let key_result: &str = avalanche_perm().to_string();
-        result.push_str(key_results)
+    pub fn avalanche(text: String, key: String) -> String {
+        let text_perms = permute_text(text.clone());
+        let key_perms = permute_text(text.clone());
+        let text_result: String = avalanche_perm(text.clone(), key.clone(), text_perms, String::from("text"));
+        let key_result: String = avalanche_perm(text, key, key_perms, String::from("key"));
+        format!("Avalanche:\n{}\n{}", text_result, key_result)
     }
     /// Avalanche permutation method
     /// Iterates over a Vec<String> and returns a String
     /// of resulting average of modified bits over the range of permutations
-    pub fn avalanche_perm(text: String, key: String, perms: Vec<String>, perm_type: String) -> String {
-        for p in perms {
-            
+    pub fn avalanche_perm(
+        text: String,
+        key: String,
+        perms: Vec<String>,
+        perm_type: String,
+    ) -> String {
+        let mode = char::from('e');
+        let mut result = String::new();
+        let mut diff_list = Vec::new();
+        for i in 0..4 {
+            let mut temp = Vec::new();
+            for j in 0..16 {
+                temp.push(Vec::<isize>::new());
+            }
+            diff_list.push(temp);
         }
+        let mut perm_num: usize = 1;
+        for perm in perms {
+            result = if perm_type == "text" {
+                    format!("{}\nP and P{} under K\n", result, perm_num)
+            } else {
+                format!("{}\nP under K and K{}\n", result, perm_num)
+            };
+            let mut des = Vec::new();
+            let j = if perm_type == "text" {
+                2
+            } else {
+                1
+            };
+            for k in 0..j {
+                let mut temp: Vec<Crypto> = Vec::new();
+                for i in 0..4 {
+                    temp.push(build_crypto(key.clone(), mode.clone()));
+                }
+                des.push(temp);
+            }
+            if perm_type == "key" {
+                let mut temp: Vec<Crypto> = Vec::new();
+                for i in 0..4 {
+                    temp.push(build_crypto(perm.clone(), mode.clone()));
+                }
+                des.push(temp);
+            }
+            result = format!("{}    0", result);
+            let mut perm_left: Vec<String> = Vec::new();
+            let mut perm_right: Vec<String> = Vec::new();
+            let mut left_text: Vec<String> = Vec::new();
+            let mut right_text: Vec<String> = Vec::new();
+            for i in 0..4 {
+                let p_text = if perm_type == "text" {
+                    half_text(perm.clone())
+                } else {
+                    half_text(text.clone())
+                };
+                result = format!("{}   {}", result, text_diff(text.clone(), format!("{}{}", p_text.0, p_text.1)));
+                perm_left.push(p_text.0);
+                perm_right.push(p_text.1);
+                let halved_text = half_text(text.clone());
+                left_text.push(halved_text.0);
+                right_text.push(halved_text.1);
+            }
+            for i in 0..16 {
+                result = format!("{}\n    {}", result, i + 1);
+            }
+
+        }
+        text
     }
     /// Des encryption method
     /// Runs through the sixteen rounds

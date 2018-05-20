@@ -21,31 +21,51 @@ fn main() {
         let values = parse_file(filename); // get a tuple of the file text and key
         if values.0 == "0" {
             // Encryption methods
-            println!("Encrypting using:\nPlaintext P: {}\nKey K:{}", values.1, values.2);
+            println!(
+                "Encrypting using:\nPlaintext P: {}\nKey K:{}",
+                values.1, values.2
+            );
             let result = encrypt(values.1.clone(), values.2.clone());
-            println!("Ciphertext C: {}\nFile written to: {}", result,out_file);
-            write_results(out_file, values.1, values.2, result, values.0.clone()).expect("Failed to write file");
-            
+            println!("Ciphertext C: {}\nFile written to: {}", result, out_file);
+            write_results(out_file, values.1, values.2, result, values.0.clone())
+                .expect("Failed to write file");
         } else if values.0 == "1" {
             // Decryption methods
-            println!("Decrypting using:\nCiphertext C: {}\nKey K:{}", values.1, values.2);
+            println!(
+                "Decrypting using:\nCiphertext C: {}\nKey K:{}",
+                values.1, values.2
+            );
             let result = decrypt(values.1.clone(), values.2.clone());
-            println!("Plaintext P: {}\nFile written to: {}", result,out_file);
-            write_results(out_file, values.1, values.2, result, values.0.clone()).expect("Failed to write file");
-
+            println!("Plaintext P: {}\nFile written to: {}", result, out_file);
+            write_results(out_file, values.1, values.2, result, values.0.clone())
+                .expect("Failed to write file");
         }
     } else {
         println!("Not enough arguments specified, please refer to the README.txt file at the root of the project");
     }
 }
 
-pub fn write_results(filename: String, plaintext: String, key: String, ciphertext: String, mode: String) -> std::io::Result<()> {
+pub fn write_results(
+    filename: String,
+    plaintext: String,
+    key: String,
+    ciphertext: String,
+    mode: String,
+) -> std::io::Result<()> {
     let mut f = File::create(filename)?;
     if mode == "0" {
-        write!(f,"ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}", plaintext, key,ciphertext)?;
+        write!(
+            f,
+            "ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}",
+            plaintext, key, ciphertext
+        )?;
         f.sync_data()?;
     } else {
-        write!(f,"DECRYPTION\nCiphertext C: {}\nKey K: {}\nPlaintext C: {}", plaintext, key,ciphertext)?;
+        write!(
+            f,
+            "DECRYPTION\nCiphertext C: {}\nKey K: {}\nPlaintext C: {}",
+            plaintext, key, ciphertext
+        )?;
         f.sync_data()?;
     }
     Ok(())
