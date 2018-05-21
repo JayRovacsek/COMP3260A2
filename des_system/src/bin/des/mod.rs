@@ -13,8 +13,8 @@ pub mod des {
     use std::error::Error;
     use std::fs::File;
     use std::path::Path;
-    use std::thread;
     use std::sync::mpsc;
+    use std::thread;
     // Struct for all the data to be stored in the Crypto system
     struct Crypto {
         round: isize,
@@ -73,7 +73,7 @@ pub mod des {
         let mut c = key_halves.0.clone();
         let mut d = key_halves.1.clone();
         let (tx, rx) = mpsc::channel();
-        let handle = thread::spawn(move|| {
+        let handle = thread::spawn(move || {
             for k in 1..17 {
                 let tx = tx.clone();
                 let shift = shift_order[&k.to_string()].as_u64().unwrap() as usize;
@@ -90,10 +90,11 @@ pub mod des {
                 c = c_shift;
                 d = d_shift;
                 tx.send(shuffle(
-                String::from("./src/boxes/PC-2.json"),
-                &format!("{}{}", c, d),
+                    String::from("./src/boxes/PC-2.json"),
+                    &format!("{}{}", c, d),
                 )).unwrap();
-        }});
+            }
+        });
 
         for received in rx {
             subkeys.push(received);
@@ -307,7 +308,7 @@ pub mod des {
             round_funs.push(&des2_round);
             round_funs.push(&des3_round);
             let (tx, rx) = mpsc::channel();
-            thread::spawn(move|| {
+            thread::spawn(move || {
                 tx = tx.clone();
                 for round_fun in round_funs {
                     for i in 0..17 {
