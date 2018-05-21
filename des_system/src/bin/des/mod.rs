@@ -22,7 +22,7 @@ pub mod des {
     // Factory method to generate a Crypto struct from a key and mode
     fn build_crypto(key: &String, mode: char) -> Crypto {
         let padded_key = pad_key(&key);
-        let key_halves = half_text(&shuffle(String::from("../boxes/PC-1.json"), &padded_key));
+        let key_halves = half_text(&shuffle(String::from("./src/boxes/PC-1.json"), &padded_key));
         let subkeys = generate_subkeys(&key_halves);
         Crypto {
             round: 0,
@@ -61,7 +61,7 @@ pub mod des {
     }
     // Generate the sixteen subkeys for each of the rounds
     fn generate_subkeys(key_halves: &(String, String)) -> Vec<String> {
-        let shift_order = parse_json(String::from("../boxes/shift.json")).unwrap();
+        let shift_order = parse_json(String::from("./src/boxes/shift.json")).unwrap();
         let mut subkeys = Vec::new();
         let mut c = key_halves.0.clone();
         let mut d = key_halves.1.clone();
@@ -80,7 +80,7 @@ pub mod des {
             c = c_shift;
             d = d_shift;
             subkeys.push(shuffle(
-                String::from("../boxes/PC-2.json"),
+                String::from("./src/boxes/PC-2.json"),
                 &format!("{}{}", c, d),
             ));
         }
@@ -102,13 +102,13 @@ pub mod des {
     }
     // The method for both the decryption and encryption
     fn crypt(mut sys: &mut Crypto, text: &String) -> String {
-        let text = shuffle(String::from("../boxes/IP.json"), &text);
+        let text = shuffle(String::from("./src/boxes/IP.json"), &text);
         let mut text_halves = half_text(&text);
         for _i in 0..16 {
             text_halves = round(&mut sys, &text_halves); // borrows the Crypto struct
         }
         let text = shuffle(
-            String::from("../boxes/IPinverse.json"),
+            String::from("./src/boxes/IPinverse.json"),
             &format!("{}{}", text_halves.1, text_halves.0), // last flip
         );
         text
@@ -123,7 +123,7 @@ pub mod des {
             xor(&sys.subkeys[(15 - sys.round) as usize], &e_text)
         };
         let sub_text = substitute(&xor_text); // substitute
-        let p_text = shuffle(String::from("../boxes/P.json"), &sub_text); // permute
+        let p_text = shuffle(String::from("./src/boxes/P.json"), &sub_text); // permute
         let end_right = xor(&p_text, &text.0); // xor with left
         sys.round += 1;
         (text.1.to_string(), end_right)
@@ -151,8 +151,8 @@ pub mod des {
         } else {
             xor(&sys.subkeys[(15 - sys.round) as usize], &e_text)
         };
-        let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), &xor_text);
-        let p_text = shuffle(String::from("../boxes/P.json"), &einverse_text); // permute
+        let einverse_text = shuffle(String::from("./src/boxes/inverseEbox.json"), &xor_text);
+        let p_text = shuffle(String::from("./src/boxes/P.json"), &einverse_text); // permute
         let end_right = xor(&p_text, &text.0); // xor with left
         sys.round += 1;
         (text.1.to_string(), end_right)
@@ -166,14 +166,14 @@ pub mod des {
         } else {
             xor(&sys.subkeys[(15 - sys.round) as usize], &e_text)
         };
-        let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), &xor_text);
+        let einverse_text = shuffle(String::from("./src/boxes/inverseEbox.json"), &xor_text);
         let end_right = xor(&einverse_text, &text.0); // xor with left
         sys.round += 1;
         (text.1.to_string(), end_right)
     }
     // Expand the input text in accordance to the des ebox
     fn expand(text: &String) -> String {
-        shuffle(String::from("../boxes/ebox.json"), &text)
+        shuffle(String::from("./src/boxes/ebox.json"), &text)
     }
     // xor two Strings containing binary text together
     fn xor(this: &String, that: &String) -> String {
@@ -203,7 +203,7 @@ pub mod des {
         let mut s_box: Vec<Map<String, Value>> = Vec::new();
         for i in 1..9 {
             // get the s-boxes
-            s_box.push(parse_json(format!("../boxes/s{}.json", i)).unwrap());
+            s_box.push(parse_json(format!("./src/boxes/s{}.json", i)).unwrap());
         }
         let mut out = String::new();
         for i in 0..8 {
