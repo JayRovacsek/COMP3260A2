@@ -21,6 +21,11 @@ pub mod des {
         mode: char,
         subkeys: Vec<String>,
     }
+    struct Diff {
+        diff_list: isize,
+        x: usize,
+        y: usize,
+    }
     // Factory method to generate a Crypto struct from a key and mode
     fn build_crypto(key: &String, mode: char) -> Crypto {
         let padded_key = pad_key(&key);
@@ -235,20 +240,20 @@ pub mod des {
     pub fn avalanche(text: String, key: String) -> String {
         let text_perms = permute_text(&text);
         let key_perms = permute_text(&key);
-        let text_result: String = avalanche_perm(text.clone(), key.clone(), text_perms.clone(), String::from("text"));
-        let key_result: String = avalanche_perm(text.clone(), key.clone(), key_perms.clone(), String::from("key"));
+        let text_result: String = avalanche_perm(&text, &key, &text_perms, String::from("text"));
+        let key_result: String = avalanche_perm(&text, &key, &key_perms, String::from("key"));
         format!("{}\n{}", text_result, key_result)
     }
     /// Avalanche permutation method
     /// Iterates over a Vec<String> and returns a String
     /// of resulting average of modified bits over the range of permutations
     fn avalanche_perm(
-        text: String,
-        key: String,
-        perms: Vec<String>,
+        text: &String,
+        key: &String,
+        perms: &Vec<String>,
         perm_type: String,
     ) -> String {
-        let mode = char::from('e');
+        let mode = char::from('e'); // assert encryption mode throughout this function
         let mut diff_list = Vec::new(); // list the difference between texts in avalanche
         for _i in 0..4 {
             let mut temp = Vec::new();
@@ -257,87 +262,92 @@ pub mod des {
             }
             diff_list.push(temp);
         }
-        let (tx, rx) = mpsc::channel();
-        let handle = thread::spawn(move|| {
-            for perm in perms {
-                let tx = tx.clone();
-                let mut des = Vec::new();
-                let j = if perm_type == "text" { 2 } else { 1 };
-                for _k in 0..j {
-                    let mut temp: Vec<Crypto> = Vec::new();
-                    for _i in 0..4 {
-                        temp.push(build_crypto(&key, char::from(mode)));
-                    }
-                    des.push(temp);
-                }
-                if perm_type == "key" {
-                    let mut temp: Vec<Crypto> = Vec::new();
-                    for _i in 0..4 {
-                        temp.push(build_crypto(&perm, char::from(mode)));
-                    }
-                    des.push(temp);
-                }
-                let mut perm_left: Vec<String> = Vec::new();
-                let mut perm_right: Vec<String> = Vec::new();
-                let mut left_text: Vec<String> = Vec::new();
-                let mut right_text: Vec<String> = Vec::new();
+        for perm in perms {
+            // iterate through the permutations
+            let mut des = Vec::new();
+            let j = if perm_type == "text" { 2 } else { 1 };
+            for _k in 0..j {
+                let mut temp: Vec<Crypto> = Vec::new();
                 for _i in 0..4 {
-                    let p_text = if perm_type == "text" {
-                        half_text(&perm)
-                    } else {
-                        half_text(&text)
-                    };
-                    perm_left.push(p_text.0);
-                    perm_right.push(p_text.1);
-                    let halved_text = half_text(&text);
-                    left_text.push(halved_text.0);
-                    right_text.push(halved_text.1);
+                    temp.push(build_crypto(&key, char::from(mode)));
                 }
-                let mut round_funs: Vec<
-                    &Fn(&mut Crypto, &(String, String)) -> (String, String),
-                > = Vec::new();
-                // The different round functions placed in a vector for iteration
-                round_funs.push(&round);
-                round_funs.push(&des1_round);
-                round_funs.push(&des2_round);
-                round_funs.push(&des3_round);
-                for i in 0..17 {
-                    for j in 0..4 {
-                        if i != 0 {
-                            // if 0, get the 0 round (no change in system)
-                            let round_text = round_funs[j](
-                                &mut des[0][j],
-                                &(perm_left[j].to_string(), perm_right[j].to_string()),
+                des.push(temp);
+            }
+            if perm_type == "key" {
+                // if key perm, then different deses are instantiated
+                let mut temp: Vec<Crypto> = Vec::new();
+                for _i in 0..4 {
+                    temp.push(build_crypto(&perm, char::from(mode)));
+                }
+                des.push(temp);
+            }
+            let mut perm_left: Vec<String> = Vec::new();
+            let mut perm_right: Vec<String> = Vec::new();
+            let mut left_text: Vec<String> = Vec::new();
+            let mut right_text: Vec<String> = Vec::new();
+            for _i in 0..4 {
+                let p_text = if perm_type == "text" {
+                    // if text type, then different texts are instantiated
+                    half_text(&perm)
+                } else {
+                    half_text(&text)
+                };
+                perm_left.push(p_text.0);
+                perm_right.push(p_text.1);
+                let halved_text = half_text(&text);
+                left_text.push(halved_text.0);
+                right_text.push(halved_text.1);
+            }
+            let mut round_funs: Vec<
+                &Fn(&mut Crypto, &(String, String)) -> (String, String),
+            > = Vec::new();
+            // The different round functions placed in a vector for iteration
+            round_funs.push(&round);
+            round_funs.push(&des1_round);
+            round_funs.push(&des2_round);
+            round_funs.push(&des3_round);
+            let (tx, rx) = mpsc::channel();
+            thread::spawn(move|| {
+                tx = tx.clone();
+                for round_fun in round_funs {
+                    for i in 0..17 {
+                        for j in 0..4 {
+                            if i != 0 {
+                                // if 0, get the 0 round (no change in system)
+                                let round_text = round_fun(
+                                    &mut des[0][j],
+                                    &(perm_left[j].to_string(), perm_right[j].to_string()),
+                                );
+                                perm_left[j] = round_text.0;
+                                perm_right[j] = round_text.1;
+                                let round_text = round_fun(
+                                    &mut des[1][j],
+                                    &(left_text[j].to_string(), right_text[j].to_string()),
+                                );
+                                left_text[j] = round_text.0;
+                                right_text[j] = round_text.1;
+                            }
+                            let diff = text_diff(
+                                &format!("{}{}", left_text[j], right_text[j]),
+                                &format!("{}{}", perm_left[j], perm_right[j]),
                             );
-                            perm_left[j] = round_text.0;
-                            perm_right[j] = round_text.1;
-                            let round_text = round_funs[j](
-                                &mut des[1][j],
-                                &(left_text[j].to_string(), right_text[j].to_string()),
-                            );
-                            left_text[j] = round_text.0;
-                            right_text[j] = round_text.1;
+                            let dif = Diff {
+                                diff_list: diff,
+                                x: j,
+                                y: i,
+                            };
+                            tx.send(dif).unwrap();
                         }
-                        let diff = text_diff(
-                            &format!("{}{}", left_text[j], right_text[j]),
-                            &format!("{}{}", perm_left[j], perm_right[j]),
-                        );
-                        diff_list[j][i].push(diff);
                     }
                 }
-                tx.send(&perm_type).unwrap();
-                tx.send(&diff_list);
+            });
+            rx.recv().unwrap();
+
+            for received in rx {
+                diff_list[received.x][received.y].push(received.diff_list);
             }
-        });
-        rx.recv().unwrap();
-        handle.join().unwrap();
-
-        let mut results = Vec::new();
-        for received in rx {
-            results.push(received);
         }
-
-        average_table(&results[0],results[1])
+        average_table(&perm_type, &diff_list)
     }
     // Take a binary text String and return a vector of all of it's permutations
     fn permute_text(text: &String) -> Vec<String> {
