@@ -34,7 +34,7 @@ pub mod des {
     fn half_text(s: &String) -> (String, String) {
         (s[..s.len() / 2].to_string(), s[s.len() / 2..].to_string())
     }
-    // Pad the key with the parity bits (even parity)
+    // Pad the key with the parity bits (odd parity)
     fn pad_key(key: &String) -> String {
         if key.len() == 56 {
             let mut split_keys: Vec<String> = Vec::new(); // have a vector of the 7 bit blocks of the key
@@ -52,7 +52,7 @@ pub mod des {
                         _ => 0,
                     }
                 }
-                let parity: char = if (j % 2) == 0 { '0' } else { '1' };
+                let parity: char = if (j % 2) == 0 { '1' } else { '0' };
                 split_keys[i].push(parity); // add parity to key
             }
             return split_keys.into_iter().collect();

@@ -2,7 +2,7 @@ README.txt - COMP3260 A2
 Authors: Cody Lewis, Jay Rovacsek
 This program must be run from inside the directory 'des_system/' (not in any of it's branches either) to work!
 It is written in rustlang, so you will require rustup and cargo, please ensure they are updated with the command `rustup update`
-It may be run with the command: `cargo run <infile> <outfile>` (optionally with the `--release` flag for faster run time)
+It may be run with the command: `cargo run <infile> <outfile>`
 such that:
 <infile> = the input file with format: first line '0' or '1' for encryption/decryption, 
            then the second line is the [cipher|plaintext]text as a binary string ('0's or '1's) of length 64
