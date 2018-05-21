@@ -20,10 +20,10 @@ pub mod des {
         subkeys: Vec<String>,
     }
     // Factory method to generate a Crypto struct from a key and mode
-    fn build_crypto(key: String, mode: char) -> Crypto {
-        let padded_key = pad_key(key.clone()); // shadows the mutable key
-        let key_halves = half_text(shuffle(String::from("../boxes/PC-1.json"), padded_key));
-        let subkeys = generate_subkeys(key_halves.clone());
+    fn build_crypto(key: &String, mode: char) -> Crypto {
+        let padded_key = pad_key(&key);
+        let key_halves = half_text(&shuffle(String::from("../boxes/PC-1.json"), &padded_key));
+        let subkeys = generate_subkeys(&key_halves);
         Crypto {
             round: 0,
             mode: char::from(mode),
@@ -31,19 +31,17 @@ pub mod des {
         }
     }
     // Take a String and returns 2 Strings of either half of the String
-    fn half_text(s: String) -> (String, String) {
+    fn half_text(s: &String) -> (String, String) {
         (s[..s.len() / 2].to_string(), s[s.len() / 2..].to_string())
     }
     // Pad the key with the parity bits (even parity)
-    fn pad_key(key: String) -> String {
+    fn pad_key(key: &String) -> String {
         if key.len() == 56 {
-            let mut key: String = key.clone(); // shadow the key into mutable
             let mut split_keys: Vec<String> = Vec::new(); // have a vector of the 7 bit blocks of the key
             for i in 0..(key.len() / 7) {
                 let index = i * 7;
                 split_keys.push(key[index..index + 7].to_string());
             }
-            key.clear(); // reset contents
             for i in 0..split_keys.len() {
                 // the parity calculations
                 let mut j: isize = 0;
@@ -56,14 +54,13 @@ pub mod des {
                 }
                 let parity: char = if (j % 2) == 0 { '0' } else { '1' };
                 split_keys[i].push(parity); // add parity to key
-                key = format!("{}{}", key, split_keys[i]);
             }
-            return key.clone();
+            return split_keys.into_iter().collect();
         }
         key.clone()
     }
     // Generate the sixteen subkeys for each of the rounds
-    fn generate_subkeys(key_halves: (String, String)) -> Vec<String> {
+    fn generate_subkeys(key_halves: &(String, String)) -> Vec<String> {
         let shift_order = parse_json(String::from("../boxes/shift.json")).unwrap();
         let mut subkeys = Vec::new();
         let mut c = key_halves.0.clone();
@@ -84,7 +81,7 @@ pub mod des {
             d = d_shift;
             subkeys.push(shuffle(
                 String::from("../boxes/PC-2.json"),
-                format!("{}{}", c, d),
+                &format!("{}{}", c, d),
             ));
         }
         subkeys
@@ -93,93 +90,93 @@ pub mod des {
     /// Runs through the sixteen rounds
     /// returns the cipher text and key
     pub fn encrypt(text: String, key: String) -> String {
-        let mut sys = build_crypto(key.clone(), char::from('e'));
-        crypt(&mut sys, text.clone())
+        let mut sys = build_crypto(&key, char::from('e'));
+        crypt(&mut sys, &text)
     }
     /// Des decryption method
     /// Runs backwards through the sixteen rounds
     /// returns the plaintext and key
     pub fn decrypt(text: String, key: String) -> String {
-        let mut sys = build_crypto(key.clone(), char::from('d'));
-        crypt(&mut sys, text.clone())
+        let mut sys = build_crypto(&key, char::from('d'));
+        crypt(&mut sys, &text)
     }
     // The method for both the decryption and encryption
-    fn crypt(mut sys: &mut Crypto, text: String) -> String {
-        let text = shuffle(String::from("../boxes/IP.json"), text);
-        let mut text_halves = half_text(text);
+    fn crypt(mut sys: &mut Crypto, text: &String) -> String {
+        let text = shuffle(String::from("../boxes/IP.json"), &text);
+        let mut text_halves = half_text(&text);
         for _i in 0..16 {
-            text_halves = round(&mut sys, text_halves.clone()); // borrows the Crypto struct
+            text_halves = round(&mut sys, &text_halves); // borrows the Crypto struct
         }
         let text = shuffle(
             String::from("../boxes/IPinverse.json"),
-            format!("{}{}", text_halves.1, text_halves.0), // last flip
+            &format!("{}{}", text_halves.1, text_halves.0), // last flip
         );
         text
     }
     // A round of the des cipher
-    fn round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
-        let e_text = expand(text.1.clone()); // expand right
+    fn round(sys: &mut Crypto, text: &(String, String)) -> (String, String) {
+        let e_text = expand(&text.1); // expand right
         let xor_text = if sys.mode == 'e' {
             // xor with key
-            xor(sys.subkeys[sys.round as usize].clone(), e_text)
+            xor(&sys.subkeys[sys.round as usize], &e_text)
         } else {
-            xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
+            xor(&sys.subkeys[(15 - sys.round) as usize], &e_text)
         };
-        let sub_text = substitute(xor_text); // substitute
-        let p_text = shuffle(String::from("../boxes/P.json"), sub_text); // permute
-        let end_right = xor(p_text, text.0); // xor with left
+        let sub_text = substitute(&xor_text); // substitute
+        let p_text = shuffle(String::from("../boxes/P.json"), &sub_text); // permute
+        let end_right = xor(&p_text, &text.0); // xor with left
         sys.round += 1;
-        (text.1, end_right)
+        (text.1.to_string(), end_right)
     }
     // Round function for des1
-    fn des1_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
-        let e_text = expand(text.1.clone()); // expand right
+    fn des1_round(sys: &mut Crypto, text: &(String, String)) -> (String, String) {
+        let e_text = expand(&text.1); // expand right
         let xor_text = if sys.mode == 'e' {
             // xor with key
-            xor(sys.subkeys[sys.round as usize].clone(), e_text)
+            xor(&sys.subkeys[sys.round as usize], &e_text)
         } else {
-            xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
+            xor(&sys.subkeys[(15 - sys.round) as usize], &e_text)
         };
-        let sub_text = substitute(xor_text); // substitute
-        let end_right = xor(sub_text, text.0); // xor with left
+        let sub_text = substitute(&xor_text); // substitute
+        let end_right = xor(&sub_text, &text.0); // xor with left
         sys.round += 1;
-        (text.1, end_right)
+        (text.1.to_string(), end_right)
     }
     // round function for des2
-    fn des2_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
-        let e_text = expand(text.1.clone()); // expand right
+    fn des2_round(sys: &mut Crypto, text: &(String, String)) -> (String, String) {
+        let e_text = expand(&text.1); // expand right
         let xor_text = if sys.mode == 'e' {
             // xor with key
-            xor(sys.subkeys[sys.round as usize].clone(), e_text)
+            xor(&sys.subkeys[sys.round as usize], &e_text)
         } else {
-            xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
+            xor(&sys.subkeys[(15 - sys.round) as usize], &e_text)
         };
-        let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), xor_text);
-        let p_text = shuffle(String::from("../boxes/P.json"), einverse_text); // permute
-        let end_right = xor(p_text, text.0); // xor with left
+        let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), &xor_text);
+        let p_text = shuffle(String::from("../boxes/P.json"), &einverse_text); // permute
+        let end_right = xor(&p_text, &text.0); // xor with left
         sys.round += 1;
-        (text.1, end_right)
+        (text.1.to_string(), end_right)
     }
     // round function for des3
-    fn des3_round(sys: &mut Crypto, text: (String, String)) -> (String, String) {
-        let e_text = expand(text.1.clone()); // expand right
+    fn des3_round(sys: &mut Crypto, text: &(String, String)) -> (String, String) {
+        let e_text = expand(&text.1); // expand right
         let xor_text = if sys.mode == 'e' {
             // xor with key
-            xor(sys.subkeys[sys.round as usize].clone(), e_text)
+            xor(&sys.subkeys[sys.round as usize], &e_text)
         } else {
-            xor(sys.subkeys[(15 - sys.round) as usize].clone(), e_text)
+            xor(&sys.subkeys[(15 - sys.round) as usize], &e_text)
         };
-        let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), xor_text);
-        let end_right = xor(einverse_text, text.0); // xor with left
+        let einverse_text = shuffle(String::from("../boxes/inverseEbox.json"), &xor_text);
+        let end_right = xor(&einverse_text, &text.0); // xor with left
         sys.round += 1;
-        (text.1, end_right)
+        (text.1.to_string(), end_right)
     }
     // Expand the input text in accordance to the des ebox
-    fn expand(text: String) -> String {
-        shuffle(String::from("../boxes/ebox.json"), text)
+    fn expand(text: &String) -> String {
+        shuffle(String::from("../boxes/ebox.json"), &text)
     }
     // xor two Strings containing binary text together
-    fn xor(this: String, that: String) -> String {
+    fn xor(this: &String, that: &String) -> String {
         let mut result: String = String::new();
         let length = this.len(); // there is no case in this program where this and that are different lengths
         for i in 0..length {
@@ -192,7 +189,7 @@ pub mod des {
         result
     }
     // Pass text through s-boxes
-    fn substitute(text: String) -> String {
+    fn substitute(text: &String) -> String {
         let n: usize = 6;
         let split_text = {
             let mut result: Vec<String> = Vec::new();
@@ -226,17 +223,17 @@ pub mod des {
     /// Creates a list of key and string permutations and
     /// returns the average number of bits changed at each permutation
     pub fn avalanche(text: String, key: String) -> String {
-        let text_perms = permute_text(text.clone());
-        let key_perms = permute_text(key.clone());
+        let text_perms = permute_text(&text);
+        let key_perms = permute_text(&key);
         let text_result: String =
-            avalanche_perm(text.clone(), key.clone(), text_perms, String::from("text"));
-        let key_result: String = avalanche_perm(text, key, key_perms, String::from("key"));
+            avalanche_perm(&text, &key, &text_perms, String::from("text"));
+        let key_result: String = avalanche_perm(&text, &key, &key_perms, String::from("key"));
         format!("{}\n{}", text_result, key_result)
     }
     /// Avalanche permutation method
     /// Iterates over a Vec<String> and returns a String
     /// of resulting average of modified bits over the range of permutations
-    fn avalanche_perm(text: String, key: String, perms: Vec<String>, perm_type: String) -> String {
+    fn avalanche_perm(text: &String, key: &String, perms: &Vec<String>, perm_type: String) -> String {
         let mode = char::from('e');
         let mut result = String::new();
         let mut diff_list = Vec::new(); // list the difference between texts in avalanche
@@ -260,14 +257,14 @@ pub mod des {
             for _k in 0..j {
                 let mut temp: Vec<Crypto> = Vec::new();
                 for _i in 0..4 {
-                    temp.push(build_crypto(key.clone(), mode.clone()));
+                    temp.push(build_crypto(&key, char::from(mode)));
                 }
                 des.push(temp);
             }
             if perm_type == "key" {
                 let mut temp: Vec<Crypto> = Vec::new();
                 for _i in 0..4 {
-                    temp.push(build_crypto(perm.clone(), mode.clone()));
+                    temp.push(build_crypto(&perm, char::from(mode)));
                 }
                 des.push(temp);
             }
@@ -279,23 +276,23 @@ pub mod des {
             result = format!("{}{}", result, 0);
             for _i in 0..4 {
                 let p_text = if perm_type == "text" {
-                    half_text(perm.clone())
+                    half_text(&perm)
                 } else {
-                    half_text(text.clone())
+                    half_text(&text)
                 };
                 result = format!(
                     "{}   \t{}",
                     result,
-                    text_diff(text.clone(), format!("{}{}", p_text.0, p_text.1))
+                    text_diff(&text, &format!("{}{}", p_text.0, p_text.1))
                 );
                 perm_left.push(p_text.0);
                 perm_right.push(p_text.1);
-                let halved_text = half_text(text.clone());
+                let halved_text = half_text(&text);
                 left_text.push(halved_text.0);
                 right_text.push(halved_text.1);
             }
             let mut round_funs: Vec<
-                &Fn(&mut Crypto, (String, String)) -> (String, String),
+                &Fn(&mut Crypto, &(String, String)) -> (String, String),
             > = Vec::new();
             // The different round functions placed in a vector for iteration
             round_funs.push(&round);
@@ -307,19 +304,19 @@ pub mod des {
                 for j in 0..4 {
                     let round_text = round_funs[j](
                         &mut des[0][j],
-                        (perm_left[j].clone(), perm_right[j].clone()),
+                        &(perm_left[j].to_string(), perm_right[j].to_string()),
                     );
                     perm_left[j] = round_text.0;
                     perm_right[j] = round_text.1;
                     let round_text = round_funs[j](
                         &mut des[1][j],
-                        (left_text[j].clone(), right_text[j].clone()),
+                        &(left_text[j].to_string(), right_text[j].to_string()),
                     );
                     left_text[j] = round_text.0;
                     right_text[j] = round_text.1;
                     let diff = text_diff(
-                        format!("{}{}", left_text[j], right_text[j]),
-                        format!("{}{}", perm_left[j], perm_right[j]),
+                        &format!("{}{}", left_text[j], right_text[j]),
+                        &format!("{}{}", perm_left[j], perm_right[j]),
                     );
                     diff_list[j][i].push(diff);
                     result = format!("{}   \t{}", result, diff);
@@ -347,7 +344,7 @@ pub mod des {
     }
 
     // Take a binary text String and return a vector of all of it's permutations
-    fn permute_text(text: String) -> Vec<String> {
+    fn permute_text(text: &String) -> Vec<String> {
         let mut result: Vec<String> = Vec::new();
         for i in 0..text.len() {
             let add: String = if text[i..i + 1].to_string() == "1" {
@@ -363,7 +360,7 @@ pub mod des {
         result
     }
     // Find the number of differences between the text and the delta_text
-    fn text_diff(text: String, delta_text: String) -> isize {
+    fn text_diff(text: &String, delta_text: &String) -> isize {
         let mut result: isize = 0;
         let length = if text.len() <= delta_text.len() {
             text.len()
@@ -386,7 +383,7 @@ pub mod des {
         Ok(json)
     }
     // Shuffle the text based on a json file input
-    fn shuffle(filename: String, text: String) -> String {
+    fn shuffle(filename: String, text: &String) -> String {
         let mut result = String::new();
         let shuffle_map = parse_json(filename).unwrap();
         for i in 0..shuffle_map.len() {

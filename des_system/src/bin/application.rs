@@ -27,7 +27,7 @@ fn main() {
                 values.1, values.2
             );
             let result = (encrypt(values.1.clone(), values.2.clone()), avalanche(values.1.clone(), values.2.clone()));
-            println!("Ciphertext C: {}\nFile written to: {}", result.1, out_file);
+            println!("Ciphertext C: {}\nAvalanche: {}\nFile written to: {}", result.0, result.1, out_file);
             write_results(
                 out_file,
                 values.1,
