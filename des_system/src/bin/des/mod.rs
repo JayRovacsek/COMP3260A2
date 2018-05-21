@@ -40,7 +40,7 @@ pub mod des {
             let mut split_keys: Vec<String> = Vec::new(); // have a vector of the 7 bit blocks of the key
             for i in 0..(key.len() / 7) {
                 let index = i * 7;
-                split_keys.push(key[index..index + 7].to_string());
+                split_keys.push(key[index..index + 7].to_string()); // slice the string into 7 bit pieces
             }
             for i in 0..split_keys.len() {
                 // the parity calculations
@@ -57,7 +57,7 @@ pub mod des {
             }
             return split_keys.into_iter().collect();
         }
-        key.clone()
+        key.clone() // just returns the key if it is not the right length
     }
     // Generate the sixteen subkeys for each of the rounds
     fn generate_subkeys(key_halves: &(String, String)) -> Vec<String> {
@@ -69,6 +69,7 @@ pub mod des {
             let shift = shift_order[&k.to_string()].as_u64().unwrap() as usize;
             let mut c_shift = String::new();
             let mut d_shift = String::new();
+            // perform left shift
             for i in shift..c.len() {
                 c_shift.push_str(&c[i..i + 1]);
                 d_shift.push_str(&d[i..i + 1]);
@@ -77,8 +78,9 @@ pub mod des {
                 c_shift.push_str(&c[i..i + 1]);
                 d_shift.push_str(&d[i..i + 1]);
             }
-            c = c_shift;
+            c = c_shift; // assign to shift
             d = d_shift;
+            // Apply PC-2 permutation
             subkeys.push(shuffle(
                 String::from("./src/boxes/PC-2.json"),
                 &format!("{}{}", c, d),
@@ -102,11 +104,14 @@ pub mod des {
     }
     // The method for both the decryption and encryption
     fn crypt(mut sys: &mut Crypto, text: &String) -> String {
+        // Initial permutation
         let text = shuffle(String::from("./src/boxes/IP.json"), &text);
         let mut text_halves = half_text(&text);
         for _i in 0..16 {
+            // perform the 16 crypt round functions
             text_halves = round(&mut sys, &text_halves); // borrows the Crypto struct
         }
+        // inverse Initial permutation
         let text = shuffle(
             String::from("./src/boxes/IPinverse.json"),
             &format!("{}{}", text_halves.1, text_halves.0), // last flip
@@ -140,7 +145,7 @@ pub mod des {
         let sub_text = substitute(&xor_text); // substitute
         let end_right = xor(&sub_text, &text.0); // xor with left
         sys.round += 1;
-        (text.1.to_string(), end_right)
+        (text.1.to_string(), end_right) // right to left and F(left) to right
     }
     // round function for des2
     fn des2_round(sys: &mut Crypto, text: &(String, String)) -> (String, String) {
@@ -238,7 +243,7 @@ pub mod des {
         perms: &Vec<String>,
         perm_type: String,
     ) -> String {
-        let mode = char::from('e');
+        let mode = char::from('e'); // assert encryption mode throughout this function
         let mut diff_list = Vec::new(); // list the difference between texts in avalanche
         for _i in 0..4 {
             let mut temp = Vec::new();
@@ -248,6 +253,7 @@ pub mod des {
             diff_list.push(temp);
         }
         for perm in perms {
+            // iterate through the permutations
             let mut des = Vec::new();
             let j = if perm_type == "text" { 2 } else { 1 };
             for _k in 0..j {
@@ -258,6 +264,7 @@ pub mod des {
                 des.push(temp);
             }
             if perm_type == "key" {
+                // if key perm, then different deses are instantiated
                 let mut temp: Vec<Crypto> = Vec::new();
                 for _i in 0..4 {
                     temp.push(build_crypto(&perm, char::from(mode)));
@@ -270,6 +277,7 @@ pub mod des {
             let mut right_text: Vec<String> = Vec::new();
             for _i in 0..4 {
                 let p_text = if perm_type == "text" {
+                    // if text type, then different texts are instantiated
                     half_text(&perm)
                 } else {
                     half_text(&text)
@@ -361,7 +369,11 @@ pub mod des {
                 for diff in diff_list[j][i].iter() {
                     add += diff;
                 }
-                table = format!("{}   \t{}", table, (add / (diff_list[j][i].len() as isize)));
+                table = format!(
+                    "{}   \t{}",
+                    table,
+                    ((add as f64 / (diff_list[j][i].len() as f64)).round())
+                );
             }
         }
         table
