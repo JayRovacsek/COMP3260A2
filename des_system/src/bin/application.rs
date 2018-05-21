@@ -23,7 +23,7 @@ fn main() {
         if values.0 == "0" {
             // Encryption methods
             println!(
-                "Encrypting using:\nPlaintext P: {}\nKey K:{}",
+                "Encrypting using:\nPlaintext P: {}\nKey K: {}",
                 values.1, values.2
             );
             let result = (encrypt(values.1.clone(), values.2.clone()), avalanche(values.1.clone(), values.2.clone()));
@@ -39,7 +39,7 @@ fn main() {
         } else if values.0 == "1" {
             // Decryption methods
             println!(
-                "Decrypting using:\nCiphertext C: {}\nKey K:{}",
+                "Decrypting using:\nCiphertext C: {}\nKey K: {}",
                 values.1, values.2
             );
             let result = decrypt(values.1.clone(), values.2.clone());
