@@ -15,9 +15,9 @@ pub mod des {
     use std::path::Path;
     // Struct for all the data to be stored in the Crypto system
     struct Crypto {
-        round: isize,
-        mode: char,
-        subkeys: Vec<String>,
+        round: isize,         // Track the round of *cyption
+        mode: char,           // Store the mode of *cryption
+        subkeys: Vec<String>, // Store the subkeys
     }
     // Factory method to generate a Crypto struct from a key and mode
     fn build_crypto(key: &String, mode: char) -> Crypto {
@@ -30,7 +30,7 @@ pub mod des {
             subkeys: subkeys,
         }
     }
-    // Take a String and returns 2 Strings of either half of the String
+    // Take a String and returns a tuple of 2 Strings of either half of the String
     fn half_text(s: &String) -> (String, String) {
         (s[..s.len() / 2].to_string(), s[s.len() / 2..].to_string())
     }
@@ -133,6 +133,9 @@ pub mod des {
         sys.round += 1;
         (text.1.to_string(), end_right)
     }
+
+    // Alternate round functions
+
     // Round function for des1
     fn des1_round(sys: &mut Crypto, text: &(String, String)) -> (String, String) {
         let e_text = expand(&text.1); // expand right
@@ -214,7 +217,7 @@ pub mod des {
         for i in 0..8 {
             // sub the text pieces into the s-boxes
             let mut add = format!(
-                "{:b}",
+                "{:b}", // Turn number into binary String
                 s_box[i].get(&split_text[i]).unwrap().as_u64().unwrap()
             );
             while add.len() < 4 {
@@ -234,9 +237,9 @@ pub mod des {
         let key_result: String = avalanche_perm(&text, &key, &key_perms, String::from("key"));
         format!("{}\n{}", text_result, key_result)
     }
-    /// Avalanche permutation method
-    /// Iterates over a Vec<String> and returns a String
-    /// of resulting average of modified bits over the range of permutations
+    // Avalanche permutation method
+    // Iterates over a Vec<String> and returns a String
+    // of resulting average of modified bits over the range of permutations
     fn avalanche_perm(
         text: &String,
         key: &String,
@@ -271,6 +274,7 @@ pub mod des {
                 }
                 des.push(temp);
             }
+            // Store the sides of the text in a Vector for passing through the des functions
             let mut perm_left: Vec<String> = Vec::new();
             let mut perm_right: Vec<String> = Vec::new();
             let mut left_text: Vec<String> = Vec::new();
@@ -321,7 +325,7 @@ pub mod des {
                 }
             }
         }
-        average_table(&perm_type, &diff_list)
+        average_table(&perm_type, &diff_list) // Return the table of the average values
     }
     // Take a binary text String and return a vector of all of it's permutations
     fn permute_text(text: &String) -> Vec<String> {

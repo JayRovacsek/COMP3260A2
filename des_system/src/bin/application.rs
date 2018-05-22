@@ -1,7 +1,7 @@
-use std::env;
-use std::fs::File;
-use std::io::prelude::*;
-mod des;
+use std::env; // for command line arguments
+use std::fs::File; // for file opening
+use std::io::prelude::*; // for file io
+mod des; // The des module, located at ./des/mod.rs
 use des::des::decrypt;
 use des::des::encrypt;
 use des::des::avalanche;
@@ -15,7 +15,7 @@ use des::des::avalanche;
 fn main() {
     // The main io thread
     let args: Vec<String> = env::args().collect();
-    if args.len() == 3 {
+    if args.len() >= 3 {
         // can only run with file and operation flags
         let filename = args[1].clone();
         let out_file = args[2].clone();
@@ -26,8 +26,10 @@ fn main() {
                 "Encrypting using:\nPlaintext P: {}\nKey K: {}",
                 values.1, values.2
             );
-            let result = (encrypt(values.1.clone(), values.2.clone()), avalanche(values.1.clone(), values.2.clone()));
-            println!("Ciphertext C: {}\nAvalanche: {}\nFile written to: {}", result.0, result.1, out_file);
+            let cipher = encrypt(values.1.clone(), values.2.clone());
+            println!("Ciphertext C: {}\nNow working on Avalanche...", cipher);
+            let result = (cipher, avalanche(values.1.clone(), values.2.clone()));
+            println!("Avalanche:\n{}\nFile written to: {}", result.1, out_file);
             write_results(
                 out_file,
                 values.1,
@@ -52,6 +54,8 @@ fn main() {
                 values.0.clone(),
                 String::new(),
             ).expect("Failed to write file");
+        } else {
+            println!("The file you input was not in the right format, please refer to the README.txt file at the root of  the project");
         }
     } else {
         println!("Not enough arguments specified, please refer to the README.txt file at the root of the project");
@@ -70,7 +74,7 @@ pub fn write_results(
     if mode == "0" {
         write!(
             f,
-            "ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}\nAvalanche: {}",
+            "ENCRYPTION\nPlaintext P: {}\nKey K: {}\nCiphertext C: {}\nAvalanche:\n{}",
             plaintext, key, ciphertext, avalanche
         )?;
         f.sync_data()?;
